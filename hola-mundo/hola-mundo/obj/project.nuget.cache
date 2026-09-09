@@ -1,0 +1,13 @@
+{
+  "version": 2,
+  "dgSpecHash": "7vE+GFgKBvM=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\nunec\\OneDrive\\Documentos\\prueba\\mini-erp-blazor\\hola-mundo\\hola-mundo\\hola-mundo.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\nunec\\.nuget\\packages\\microsoft.aspnetcore.app.internal.assets\\10.0.12\\microsoft.aspnetcore.app.internal.assets.10.0.12.nupkg.sha512",
+    "C:\\Users\\nunec\\.nuget\\packages\\microsoft.aspnetcore.components.webassembly\\10.0.12\\microsoft.aspnetcore.components.webassembly.10.0.12.nupkg.sha512",
+    "C:\\Users\\nunec\\.nuget\\packages\\microsoft.aspnetcore.components.webassembly.server\\10.0.12\\microsoft.aspnetcore.components.webassembly.server.10.0.12.nupkg.sha512",
+    "C:\\Users\\nunec\\.nuget\\packages\\microsoft.jsinterop.webassembly\\10.0.12\\microsoft.jsinterop.webassembly.10.0.12.nupkg.sha512"
+  ],
+  "logs": []
+}
