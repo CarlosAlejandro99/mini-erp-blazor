@@ -1,0 +1,137 @@
+@page "/empleados"
+@rendermode InteractiveWebAssembly
+@using hola_mundo.Client.Shared
+@using System.Text.Json
+@inject IJSRuntime JS
+
+<PageTitle>Empleados</PageTitle>
+
+<h1>Empleados</h1>
+
+<p>Lista de empleados registrados.</p>
+
+@if (empleados == null)
+{
+    <div class="text-center my-5">
+        <img src="https://assets-v2.lottiefiles.com/a/03cdc6e0-118b-11ee-bf08-07d88a941cbd/fjMdlSoouM.gif"
+             alt="Cargando información..."
+             width="100"
+             height="100" />
+
+        <p class="mt-3">
+            <strong>Cargando información...</strong>
+        </p>
+
+        <p class="text-muted">
+            Por favor espera un momento...
+        </p>
+    </div>
+}
+else
+{
+    @foreach (var empleado in empleados)
+    {
+        <TarjetaEmpleado Nombre="@empleado.Nombre"
+                          Puesto="@empleado.Puesto"
+                          Correo="@empleado.Correo" />
+    }
+}
+
+<hr />
+
+<h2>Agregar empleado</h2>
+
+<div class="mb-3">
+    <label for="nombreEmpleado" class="form-label">Nombre del empleado</label>
+    <input id="nombreEmpleado" type="text" class="form-control" @bind="nombreEmpleado"
+           placeholder="Escribe el nombre del empleado" />
+</div>
+
+<div class="mb-3">
+    <label for="puestoEmpleado" class="form-label">Puesto</label>
+    <input id="puestoEmpleado" type="text" class="form-control" @bind="puestoEmpleado"
+           placeholder="Escribe el puesto del empleado" />
+</div>
+
+<div class="mb-3">
+    <label for="correoEmpleado" class="form-label">Correo</label>
+    <input id="correoEmpleado" type="email" class="form-control" @bind="correoEmpleado"
+           placeholder="Escribe el correo del empleado" />
+</div>
+
+<button class="btn btn-primary" @onclick="AgregarEmpleado">
+    Agregar empleado
+</button>
+
+@code {
+
+    private List<Empleado>? empleados;
+
+    private string nombreEmpleado = string.Empty;
+    private string puestoEmpleado = string.Empty;
+    private string correoEmpleado = string.Empty;
+
+    private const string StorageKey = "empleados-guardados";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!OperatingSystem.IsBrowser())
+        {
+            // Estamos en prerenderizado del servidor, todavía no hay JS/localStorage disponible.
+            return;
+        }
+
+        await Task.Delay(1000);
+
+        var datosGuardados = await JS.InvokeAsync<string?>("localStorage.getItem", StorageKey);
+
+        if (!string.IsNullOrWhiteSpace(datosGuardados))
+        {
+            empleados = JsonSerializer.Deserialize<List<Empleado>>(datosGuardados);
+        }
+        else
+        {
+            empleados = new List<Empleado>
+            {
+                new Empleado { Nombre = "Carlos Núñez", Puesto = "Administrador", Correo = "carlos@empresa.com" },
+                new Empleado { Nombre = "Ana López", Puesto = "Desarrolladora", Correo = "ana@empresa.com" },
+                new Empleado { Nombre = "José Martínez", Puesto = "Soporte técnico", Correo = "jose@empresa.com" },
+                new Empleado { Nombre = "María González", Puesto = "Analista", Correo = "maria@empresa.com" }
+            };
+
+            await GuardarEnStorage();
+        }
+    }
+
+    private async Task AgregarEmpleado()
+    {
+        if (!string.IsNullOrWhiteSpace(nombreEmpleado) && empleados != null)
+        {
+            empleados.Add(new Empleado
+            {
+                Nombre = nombreEmpleado,
+                Puesto = string.IsNullOrWhiteSpace(puestoEmpleado) ? "Por definir" : puestoEmpleado,
+                Correo = string.IsNullOrWhiteSpace(correoEmpleado) ? "-" : correoEmpleado
+            });
+
+            nombreEmpleado = string.Empty;
+            puestoEmpleado = string.Empty;
+            correoEmpleado = string.Empty;
+
+            await GuardarEnStorage();
+        }
+    }
+
+    private async Task GuardarEnStorage()
+    {
+        var json = JsonSerializer.Serialize(empleados);
+        await JS.InvokeVoidAsync("localStorage.setItem", StorageKey, json);
+    }
+
+    private class Empleado
+    {
+        public string Nombre { get; set; } = "";
+        public string Puesto { get; set; } = "";
+        public string Correo { get; set; } = "";
+    }
+}
