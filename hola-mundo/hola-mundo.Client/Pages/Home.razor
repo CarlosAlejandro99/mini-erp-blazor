@@ -1,100 +1,327 @@
 ﻿@page "/"
 @rendermode InteractiveWebAssembly
+@using System.Text.Json
+@inject IJSRuntime JS
 
-<PageTitle> Mini ERP | Inicio</PageTitle>
+<PageTitle>Mini ERP | Inicio</PageTitle>
 
-<div class="container py-5">
+<div class="home-page">
 
-    <!-- Encabezado -->
-    <div class="text-center mb-5">
-        <h1 class="display-4 fw-bold">Mini ERP</h1>
+    <!-- Fondos animados -->
+    <div class="background-effect effect-1"></div>
+    <div class="background-effect effect-2"></div>
+    <div class="background-effect effect-3"></div>
 
-        <p class="lead text-muted">
-            Proyecto desarrollado con Blazor y .NET
-        </p>
+    <div class="container position-relative">
 
-    </div>
+        <!-- HERO -->
+        <section class="hero-section">
 
-    <!-- Presentación del proyecto -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body p-4">
+            <div class="hero-content">
 
-            <h2 class="h4 mb-3">Información del proyecto</h2>
+                <div class="hero-badge">
+                    <span class="pulse-dot"></span>
+                    Sistema activo
+                </div>
+
+                <h1>
+                    Bienvenido a
+                    <span class="gradient-text">Mini ERP</span>
+                </h1>
+
+                <p class="hero-description">
+                    Una aplicación web desarrollada con Blazor y .NET
+                    para gestionar información de manera sencilla,
+                    rápida y organizada.
+                </p>
+
+                <div class="hero-buttons">
+
+                    <a href="/empleados"
+                       class="btn btn-primary btn-lg hero-button">
+                        👥 Ver empleados
+                    </a>
+
+                    <button class="btn btn-outline-light btn-lg hero-button"
+                            @onclick="CambiarTexto">
+                        ✨ Probar interacción
+                    </button>
+
+                </div>
+
+            </div>
+
+            <!-- PANEL VISUAL -->
+            <div class="hero-panel">
+
+                <div class="floating-icon icon-1">👥</div>
+                <div class="floating-icon icon-2">⚡</div>
+                <div class="floating-icon icon-3">💻</div>
+
+                <div class="dashboard-card">
+
+                    <div class="dashboard-header">
+
+                        <div>
+                            <small>Panel principal</small>
+                            <h4>Mini ERP</h4>
+                        </div>
+
+                        <span class="status-circle"></span>
+
+                    </div>
+
+                    <div class="chart-area">
+
+                        <div class="chart-bar bar-1"></div>
+                        <div class="chart-bar bar-2"></div>
+                        <div class="chart-bar bar-3"></div>
+                        <div class="chart-bar bar-4"></div>
+                        <div class="chart-bar bar-5"></div>
+                        <div class="chart-bar bar-6"></div>
+
+                    </div>
+
+                    <div class="dashboard-footer">
+                        <span>Aplicación funcionando</span>
+                        <strong>● Online</strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- INTERACCIÓN -->
+        <section class="interaction-section">
+
+            <div class="interaction-card">
+
+                <div class="interaction-icon">
+                    ✨
+                </div>
+
+                <div class="interaction-content">
+
+                    <span>DATA BINDING</span>
+
+                    <h3>@mensaje</h3>
+
+                    <p>
+                        Has interactuado con el sistema
+                        <strong>@contador</strong>
+                        @(contador == 1 ? "vez" : "veces").
+                    </p>
+
+                </div>
+
+                <button class="interaction-button"
+                        @onclick="CambiarTexto">
+
+                    Probar →
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- ESTADÍSTICAS REALES -->
+        <section class="stats-section">
+
+            <div class="stat-card">
+
+                <div class="stat-icon purple">
+                    👥
+                </div>
+
+                <div>
+                    <span>Empleados</span>
+                    <strong>@cantidadEmpleados</strong>
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon blue">
+                    💾
+                </div>
+
+                <div>
+                    <span>Almacenamiento</span>
+                    <strong>Local</strong>
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon green">
+                    ⚡
+                </div>
+
+                <div>
+                    <span>Framework</span>
+                    <strong>Blazor</strong>
+                </div>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <div class="stat-icon orange">
+                    🌐
+                </div>
+
+                <div>
+                    <span>Aplicación</span>
+                    <strong>Web</strong>
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- MÓDULOS -->
+        <section class="modules-section">
+
+            <div class="section-heading">
+
+                <span>MÓDULO DISPONIBLE</span>
+
+                <h2>
+                    Gestiona tu información
+                </h2>
+
+                <p>
+                    Actualmente puedes administrar los empleados
+                    registrados en el sistema.
+                </p>
+
+            </div>
+
+
+            <div class="modules-grid">
+
+                <a href="/empleados" class="module-card">
+
+                    <div class="module-icon">
+                        👥
+                    </div>
+
+                    <div>
+
+                        <h4>
+                            Empleados
+                        </h4>
+
+                        <p>
+                            Consulta y agrega empleados
+                            directamente desde el sistema.
+                        </p>
+
+                    </div>
+
+                    <span class="module-arrow">
+                        →
+                    </span>
+
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <!-- FOOTER -->
+        <footer class="home-footer">
+
+            <div class="footer-line"></div>
 
             <p>
-                Este proyecto tiene como objetivo practicar los fundamentos
-                del lenguaje C# y el desarrollo de aplicaciones web utilizando
-                Blazor y .NET.
+                Mini ERP
+                <span>•</span>
+                Proyecto académico
+                <span>•</span>
+                Blazor + .NET
             </p>
 
-            <p class="mb-0">
-                Durante el desarrollo se implementarán conceptos como
-                variables, listas, diccionarios, clases, métodos y
-                componentes interactivos.
-            </p>
+        </footer>
 
-        </div>
-    </div>
-
-    <!-- Conceptos -->
-    <h2 class="h4 text-center mb-4">
-        Conceptos de C# que estamos practicando
-    </h2>
-
-    <div class="row g-4">
-
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center">
-
-                    <h3 class="h5">Variables</h3>
-
-                    <p class="text-muted mb-0">
-                        Permiten almacenar información utilizando
-                        diferentes tipos de datos.
-                    </p>
-
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center">
-
-                    <h3 class="h5">Listas</h3>
-
-                    <p class="text-muted mb-0">
-                        Permiten almacenar colecciones ordenadas
-                        de elementos.
-                    </p>
-
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm">
-                <div class="card-body text-center">
-
-                    <h3 class="h5">Clases</h3>
-
-                    <p class="text-muted mb-0">
-                        Permiten agrupar datos y comportamientos
-                        relacionados.
-                    </p>
-
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Pie de página -->
-    <div class="text-center text-muted mt-5">
-        <small>
-            Proyecto académico • C# • Blazor • .NET
-        </small>
     </div>
 
 </div>
+
+
+@code {
+
+    private int contador = 0;
+
+    private int cantidadEmpleados = 0;
+
+    private string[] mensajes =
+    {
+        "¡La interfaz está respondiendo! 🎉",
+        "¡Eso es Data Binding en Blazor! 🚀",
+        "Cada interacción actualiza la interfaz. ⚡",
+        "¡Sigue experimentando con Blazor! 💪",
+        "¡Tu Mini ERP está tomando forma! ✨"
+    };
+
+    private string mensaje = "Interactúa con el sistema";
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!OperatingSystem.IsBrowser())
+        {
+            return;
+        }
+
+        try
+        {
+            var datosGuardados =
+                await JS.InvokeAsync<string?>(
+                    "localStorage.getItem",
+                    "empleados-guardados");
+
+            if (!string.IsNullOrWhiteSpace(datosGuardados))
+            {
+                var empleados =
+                    JsonSerializer.Deserialize<List<Empleado>>(datosGuardados);
+
+                cantidadEmpleados = empleados?.Count ?? 0;
+            }
+        }
+        catch
+        {
+            cantidadEmpleados = 0;
+        }
+    }
+
+
+    private void CambiarTexto()
+    {
+        contador++;
+
+        mensaje =
+            mensajes[(contador - 1) % mensajes.Length];
+    }
+
+
+    private class Empleado
+    {
+        public string Nombre { get; set; } = "";
+        public string Puesto { get; set; } = "";
+        public string Correo { get; set; } = "";
+    }
+
+}
