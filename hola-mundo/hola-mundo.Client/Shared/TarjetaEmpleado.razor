@@ -1,0 +1,20 @@
+<div class="card mb-2">
+    <div class="card-body">
+        <h5 class="card-title">@Nombre</h5>
+        <p class="card-text">
+            <strong>Puesto:</strong> @Puesto <br />
+            <strong>Correo:</strong> @Correo
+        </p>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public string Nombre { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Puesto { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Correo { get; set; } = string.Empty;
+}
