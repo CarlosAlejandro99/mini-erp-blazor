@@ -1,16 +1,61 @@
 ﻿@page "/"
+@rendermode InteractiveWebAssembly
 
 <PageTitle>Home</PageTitle>
 
-<h1>hola mundo!</h1>
+<div class="container py-5">
 
-bienbenido a esta nueva aplicacion de prueba, creada con blazor y .net 8.0
-<button @onclick="CambiarTexto">presioname </button>
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold">👋 ¡Hola Mundo!</h1>
+        <p class="lead text-muted">
+            Bienvenido a esta aplicación de prueba, creada con Blazor y .NET
+        </p>
+    </div>
+
+    <div class="card shadow-sm mx-auto" style="max-width: 500px;">
+        <div class="card-body text-center p-4">
+
+            <p class="fs-5 mb-4">@mensaje</p>
+
+            <button class="btn btn-primary btn-lg px-4" @onclick="CambiarTexto">
+                Presióname
+            </button>
+
+            @if (contador > 0)
+            {
+                <p class="text-muted mt-3 mb-0">
+                    Has presionado el botón <strong>@contador</strong>
+                    @(contador == 1 ? "vez" : "veces")
+                </p>
+            }
+
+        </div>
+    </div>
+
+    <div class="text-center text-muted mt-5">
+        <small>Proyecto de práctica • Blazor • .NET</small>
+    </div>
+
+</div>
 
 @code {
+    private int contador = 0;
+
+    private string[] mensajes = new[]
+    {
+        "¡Gracias por presionar el botón! 🎉",
+        "Sigue explorando Blazor 🚀",
+        "Cada clic cuenta 😄",
+        "¡Ya casi eres un experto en Blazor! 💪",
+        "El data binding es mágico, ¿no crees? ✨"
+    };
+
+    private string mensaje = "Bienvenido a esta nueva aplicación de prueba, creada con Blazor y .NET.";
+
     private void CambiarTexto()
     {
-        // Lógica para cambiar el texto o realizar alguna acción
-        Console.WriteLine("¡Botón presionado!");
+        contador++;
+        mensaje = mensajes[contador % mensajes.Length];
+        Console.WriteLine($"¡Botón presionado! Van {contador} clics.");
     }
 }
