@@ -1,8 +1,10 @@
 @page "/empleados"
 @rendermode InteractiveWebAssembly
+
 @using hola_mundo.Client.Shared
 @using hola_mundo.Client.Models
 @using hola_mundo.Client.Services
+
 @inject IEmpleadoService EmpleadoService
 
 <PageTitle>Empleados</PageTitle>
@@ -19,7 +21,10 @@
             <div class="loading-section">
                 <div class="loading-card">
                     <img src="https://assets-v2.lottiefiles.com/a/03cdc6e0-118b-11ee-bf08-07d88a941cbd/fjMdlSoouM.gif"
-                         alt="Cargando..." width="90" height="90" />
+                         alt="Cargando..."
+                         width="90"
+                         height="90" />
+
                     <h3>Cargando información...</h3>
                     <p>Por favor espera un momento...</p>
                 </div>
@@ -27,64 +32,127 @@
         }
         else
         {
+            <!-- =========================================
+                 ENCABEZADO
+                 ========================================= -->
+
             <div class="employees-header">
+
                 <div>
+
                     <div class="page-badge">
                         <span class="pulse-dot"></span>
                         Sistema de empleados activo
                     </div>
+
                     <h1>
                         Nuestro equipo
-                        <span class="gradient-text">en un solo lugar</span>
+                        <span class="gradient-text">
+                            en un solo lugar
+                        </span>
                     </h1>
+
                     <p>
-                        Consulta, busca y agrega empleados al directorio de la empresa
-                        en tiempo real.
+                        Consulta, busca y agrega empleados al
+                        directorio de la empresa en tiempo real.
                     </p>
+
                 </div>
-                <div class="header-icon">👥</div>
+
+                <div class="header-icon">
+                    👥
+                </div>
+
             </div>
 
+
+            <!-- =========================================
+                 ESTADÍSTICAS
+                 ========================================= -->
+
             <div class="stats-section">
+
                 <div class="stat-card">
-                    <div class="stat-icon purple">👤</div>
+
+                    <div class="stat-icon purple">
+                        👤
+                    </div>
+
                     <div>
                         <span>Total de empleados</span>
                         <strong>@empleados.Count</strong>
                     </div>
+
                 </div>
 
+
                 <div class="stat-card">
-                    <div class="stat-icon blue">💼</div>
+
+                    <div class="stat-icon blue">
+                        💼
+                    </div>
+
                     <div>
                         <span>Puestos distintos</span>
                         <strong>@PuestosUnicos</strong>
                     </div>
+
                 </div>
 
+
                 <div class="stat-card">
-                    <div class="stat-icon green">🔎</div>
+
+                    <div class="stat-icon green">
+                        🔎
+                    </div>
+
                     <div>
                         <span>Resultados mostrados</span>
                         <strong>@empleadosFiltrados.Count</strong>
                     </div>
+
                 </div>
+
             </div>
+
+
+            <!-- =========================================
+                 DIRECTORIO
+                 ========================================= -->
 
             <div class="employees-section">
 
                 <div class="section-title">
+
                     <div>
-                        <span class="section-label">DIRECTORIO</span>
-                        <h2>Empleados registrados</h2>
+
+                        <span class="section-label">
+                            DIRECTORIO
+                        </span>
+
+                        <h2>
+                            Empleados registrados
+                        </h2>
+
                     </div>
+
                     <span class="employee-count">
                         @empleadosFiltrados.Count de @empleados.Count
                     </span>
+
                 </div>
 
+
+                <!-- =========================================
+                     BUSCADOR
+                     ========================================= -->
+
                 <div class="search-box">
-                    <span class="search-icon">🔍</span>
+
+                    <span class="search-icon">
+                        🔍
+                    </span>
+
                     <input type="text"
                            class="search-input"
                            placeholder="Buscar por nombre, puesto o correo..."
@@ -93,126 +161,499 @@
 
                     @if (!string.IsNullOrWhiteSpace(terminoBusqueda))
                     {
-                        <button class="clear-search" @onclick="LimpiarBusqueda">✕</button>
+                        <button class="clear-search"
+                                @onclick="LimpiarBusqueda">
+                            ✕
+                        </button>
                     }
+
                 </div>
+
+
+                <!-- =========================================
+                     MENSAJE DE MÍNIMO DE CARACTERES
+                     ========================================= -->
+
+                @if (terminoBusqueda.Length == 1)
+                {
+                    <div class="search-message">
+                        🔎 Escribe al menos 2 caracteres para realizar la búsqueda.
+                    </div>
+                }
+
+
+                <!-- =========================================
+                     RESULTADOS
+                     ========================================= -->
 
                 @if (empleadosFiltrados.Count == 0)
                 {
                     <div class="empty-state">
-                        <div class="empty-icon">🗂️</div>
-                        <p>No se encontraron empleados que coincidan con "@terminoBusqueda".</p>
+
+                        <div class="empty-icon">
+                            🗂️
+                        </div>
+
+                        <p>
+                            No se encontraron empleados que coincidan
+                            con "@terminoBusqueda".
+                        </p>
+
                     </div>
                 }
                 else
                 {
+                    <!-- TARJETAS -->
+
                     <div class="employees-grid">
-                        @foreach (var empleado in empleadosFiltrados)
+
+                        @foreach (var empleado in empleadosPaginados)
                         {
-                            <TarjetaEmpleado Nombre="@empleado.Nombre"
-                                              Puesto="@empleado.Puesto"
-                                              Correo="@empleado.Correo" />
+                            <TarjetaEmpleado
+                                Nombre="@empleado.Nombre"
+                                Puesto="@empleado.Puesto"
+                                Correo="@empleado.Correo" />
                         }
+
+                    </div>
+
+
+                    <!-- =========================================
+                         PAGINACIÓN
+                         ========================================= -->
+
+                    <div class="pagination-container">
+
+                        <button class="pagination-button"
+                                disabled="@(paginaActual <= 1)"
+                                @onclick="PaginaAnterior">
+
+                            ← Anterior
+
+                        </button>
+
+
+                        <span class="pagination-info">
+
+                            Página @paginaActual de @TotalPaginas
+
+                        </span>
+
+
+                        <button class="pagination-button"
+                                disabled="@(paginaActual >= TotalPaginas)"
+                                @onclick="PaginaSiguiente">
+
+                            Siguiente →
+
+                        </button>
+
                     </div>
                 }
 
             </div>
 
+
+            <!-- =========================================
+                 FORMULARIO AGREGAR EMPLEADO
+                 ========================================= -->
+
             <div class="add-section">
+
                 <div class="add-header">
-                    <div class="add-icon">➕</div>
+
+                    <div class="add-icon">
+                        ➕
+                    </div>
+
                     <div>
-                        <h2>Agregar empleado</h2>
-                        <p>Completa los datos para sumarlo al directorio.</p>
+
+                        <h2>
+                            Agregar empleado
+                        </h2>
+
+                        <p>
+                            Completa los datos para sumarlo al directorio.
+                        </p>
+
                     </div>
+
                 </div>
 
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label for="nombreEmpleado">Nombre</label>
-                        <input id="nombreEmpleado" type="text" class="form-control custom-input"
-                               @bind="nombreEmpleado" placeholder="Ej. Laura Ramírez" />
+
+                <EditForm Model="@nuevoEmpleado"
+                          OnValidSubmit="AgregarEmpleado">
+
+                    <DataAnnotationsValidator />
+
+
+                    <div class="form-grid">
+
+                        <!-- NOMBRE -->
+
+                        <div class="form-group">
+
+                            <label for="nombreEmpleado">
+                                Nombre
+                            </label>
+
+                            <InputText id="nombreEmpleado"
+                                       class="form-control custom-input"
+                                       @bind-Value="nuevoEmpleado.Nombre"
+                                       placeholder="Ej. Laura Ramírez" />
+
+                            <ValidationMessage
+                                For="@(() => nuevoEmpleado.Nombre)"
+                                class="text-danger" />
+
+                        </div>
+
+
+                        <!-- PUESTO -->
+
+                        <div class="form-group">
+
+                            <label for="puestoEmpleado">
+                                Puesto
+                            </label>
+
+                            <InputText id="puestoEmpleado"
+                                       class="form-control custom-input"
+                                       @bind-Value="nuevoEmpleado.Puesto"
+                                       placeholder="Ej. Diseñadora UX" />
+
+                            <ValidationMessage
+                                For="@(() => nuevoEmpleado.Puesto)"
+                                class="text-danger" />
+
+                        </div>
+
+
+                        <!-- CORREO -->
+
+                        <div class="form-group">
+
+                            <label for="correoEmpleado">
+                                Correo
+                            </label>
+
+                            <InputText id="correoEmpleado"
+                                       class="form-control custom-input"
+                                       @bind-Value="nuevoEmpleado.Correo"
+                                       placeholder="Ej. laura@empresa.com" />
+
+                            <ValidationMessage
+                                For="@(() => nuevoEmpleado.Correo)"
+                                class="text-danger" />
+
+                        </div>
+
                     </div>
 
-                    <div class="form-group">
-                        <label for="puestoEmpleado">Puesto</label>
-                        <input id="puestoEmpleado" type="text" class="form-control custom-input"
-                               @bind="puestoEmpleado" placeholder="Ej. Diseñadora UX" />
-                    </div>
 
-                    <div class="form-group">
-                        <label for="correoEmpleado">Correo</label>
-                        <input id="correoEmpleado" type="email" class="form-control custom-input"
-                               @bind="correoEmpleado" placeholder="Ej. laura@empresa.com" />
-                    </div>
-                </div>
+                    <button type="submit"
+                            class="add-button">
 
-                <button class="add-button" @onclick="AgregarEmpleado">
-                    ➕ Agregar empleado
-                </button>
+                        ➕ Agregar empleado
+
+                    </button>
+
+                </EditForm>
+
             </div>
 
+
+            <!-- =========================================
+                 INFORMACIÓN
+                 ========================================= -->
+
             <p class="storage-info">
-                Los datos se mantienen en memoria mientras la aplicación esté abierta.
+
+                Los datos se mantienen en memoria mientras
+                la aplicación esté abierta.
+
             </p>
+
         }
 
     </div>
+
 </div>
+
 
 @code {
 
+    /* =========================================
+       LISTA DE EMPLEADOS
+       ========================================= */
+
     private List<Empleado>? empleados;
 
-    private string nombreEmpleado = string.Empty;
-    private string puestoEmpleado = string.Empty;
-    private string correoEmpleado = string.Empty;
 
+    /* =========================================
+       NUEVO EMPLEADO
+       ========================================= */
+
+    private Empleado nuevoEmpleado = new();
+
+
+    /* =========================================
+       BUSCADOR
+       ========================================= */
+
+    // Texto que está escribiendo actualmente el usuario
     private string terminoBusqueda = string.Empty;
+
+    // Texto que realmente se utiliza para filtrar
+    private string terminoBusquedaAplicado = string.Empty;
+
+    // Permite cancelar búsquedas anteriores
+    private CancellationTokenSource? busquedaCancellation;
+
+
+    /* =========================================
+       PAGINACIÓN
+       ========================================= */
+
+    private int empleadosPorPagina = 4;
+
+    private int paginaActual = 1;
+
+
+    /* =========================================
+       EMPLEADOS FILTRADOS
+       ========================================= */
 
     private List<Empleado> empleadosFiltrados =>
         empleados is null
             ? new List<Empleado>()
             : empleados.Where(e =>
-                string.IsNullOrWhiteSpace(terminoBusqueda) ||
-                e.Nombre.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ||
-                e.Puesto.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ||
-                e.Correo.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase)
-              ).ToList();
+                string.IsNullOrWhiteSpace(terminoBusquedaAplicado) ||
+
+                e.Nombre.Contains(
+                    terminoBusquedaAplicado,
+                    StringComparison.OrdinalIgnoreCase) ||
+
+                e.Puesto.Contains(
+                    terminoBusquedaAplicado,
+                    StringComparison.OrdinalIgnoreCase) ||
+
+                e.Correo.Contains(
+                    terminoBusquedaAplicado,
+                    StringComparison.OrdinalIgnoreCase)
+
+            ).ToList();
+
+
+    /* =========================================
+       TOTAL DE PÁGINAS
+       ========================================= */
+
+    private int TotalPaginas =>
+        Math.Max(
+            1,
+            (int)Math.Ceiling(
+                empleadosFiltrados.Count /
+                (double)empleadosPorPagina
+            )
+        );
+
+
+    /* =========================================
+       EMPLEADOS DE LA PÁGINA ACTUAL
+       ========================================= */
+
+    private List<Empleado> empleadosPaginados =>
+        empleadosFiltrados
+            .Skip(
+                (paginaActual - 1) *
+                empleadosPorPagina
+            )
+            .Take(empleadosPorPagina)
+            .ToList();
+
+
+    /* =========================================
+       PUESTOS DIFERENTES
+       ========================================= */
 
     private int PuestosUnicos =>
-        empleados?.Select(e => e.Puesto).Distinct().Count() ?? 0;
+        empleados?
+            .Select(e => e.Puesto)
+            .Distinct()
+            .Count() ?? 0;
+
+
+    /* =========================================
+       CARGAR EMPLEADOS
+       ========================================= */
 
     protected override async Task OnInitializedAsync()
     {
+        // Simular carga
         await Task.Delay(500);
+
         empleados = EmpleadoService.ObtenerTodos();
     }
 
-    private void OnBuscar(ChangeEventArgs e)
+
+    /* =========================================
+       BUSCADOR CON DEBOUNCE
+       ========================================= */
+
+    private async Task OnBuscar(ChangeEventArgs e)
     {
+        // Obtener lo que está escribiendo el usuario
         terminoBusqueda = e.Value?.ToString() ?? string.Empty;
+
+
+        // Cancelar la búsqueda anterior
+        busquedaCancellation?.Cancel();
+        busquedaCancellation?.Dispose();
+
+
+        // Crear nueva cancelación
+        busquedaCancellation = new CancellationTokenSource();
+
+        var token = busquedaCancellation.Token;
+
+
+        // =========================================
+        // SI ESTÁ VACÍO
+        // =========================================
+
+        if (string.IsNullOrWhiteSpace(terminoBusqueda))
+        {
+            terminoBusquedaAplicado = string.Empty;
+
+            paginaActual = 1;
+
+            await InvokeAsync(StateHasChanged);
+
+            return;
+        }
+
+
+        // =========================================
+        // MENOS DE 2 CARACTERES
+        // =========================================
+
+        if (terminoBusqueda.Trim().Length < 2)
+        {
+            terminoBusquedaAplicado = string.Empty;
+
+            paginaActual = 1;
+
+            await InvokeAsync(StateHasChanged);
+
+            return;
+        }
+
+
+        try
+        {
+            // Esperar 500 milisegundos
+            await Task.Delay(
+                500,
+                token
+            );
+
+
+            // Si el usuario siguió escribiendo,
+            // cancelar esta búsqueda
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+
+            // Aplicar búsqueda
+            terminoBusquedaAplicado =
+                terminoBusqueda.Trim();
+
+
+            // Regresar a la primera página
+            paginaActual = 1;
+
+
+            // Actualizar interfaz
+            await InvokeAsync(
+                StateHasChanged
+            );
+        }
+        catch (TaskCanceledException)
+        {
+            // El usuario siguió escribiendo.
+            // La búsqueda anterior se cancela.
+        }
     }
+
+
+    /* =========================================
+       LIMPIAR BÚSQUEDA
+       ========================================= */
 
     private void LimpiarBusqueda()
     {
+        // Cancelar búsqueda pendiente
+        busquedaCancellation?.Cancel();
+        busquedaCancellation?.Dispose();
+
+
+        // Limpiar texto
         terminoBusqueda = string.Empty;
+
+        terminoBusquedaAplicado = string.Empty;
+
+
+        // Regresar a primera página
+        paginaActual = 1;
     }
+
+
+    /* =========================================
+       PÁGINA ANTERIOR
+       ========================================= */
+
+    private void PaginaAnterior()
+    {
+        if (paginaActual > 1)
+        {
+            paginaActual--;
+        }
+    }
+
+
+    /* =========================================
+       PÁGINA SIGUIENTE
+       ========================================= */
+
+    private void PaginaSiguiente()
+    {
+        if (paginaActual < TotalPaginas)
+        {
+            paginaActual++;
+        }
+    }
+
+
+    /* =========================================
+       AGREGAR EMPLEADO
+       ========================================= */
 
     private void AgregarEmpleado()
     {
-        if (!string.IsNullOrWhiteSpace(nombreEmpleado))
-        {
-            EmpleadoService.Agregar(new Empleado
-            {
-                Nombre = nombreEmpleado,
-                Puesto = string.IsNullOrWhiteSpace(puestoEmpleado) ? "Por definir" : puestoEmpleado,
-                Correo = string.IsNullOrWhiteSpace(correoEmpleado) ? "-" : correoEmpleado
-            });
+        EmpleadoService.Agregar(
+            nuevoEmpleado
+        );
 
-            nombreEmpleado = string.Empty;
-            puestoEmpleado = string.Empty;
-            correoEmpleado = string.Empty;
-        }
+
+        // Limpiar formulario
+        nuevoEmpleado = new Empleado();
+
+
+        // Regresar a primera página
+        paginaActual = 1;
     }
+
 }
