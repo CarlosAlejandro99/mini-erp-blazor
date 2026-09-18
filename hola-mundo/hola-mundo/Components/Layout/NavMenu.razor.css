@@ -1,85 +1,296 @@
+/* =========================================
+   CONTENEDOR DEL MENÚ
+   ========================================= */
+
+.menu-sidebar {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+
+/* =========================================
+   ENCABEZADO
+   ========================================= */
+
+.top-row {
+    min-height: 3.5rem;
+    background-color: rgba(0, 0, 0, 0.4);
+}
+
+.navbar-brand {
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+
+/* =========================================
+   ICONO DEL LOGO
+   ========================================= */
+
+.brand-icon {
+    min-width: 32px;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 1.25rem;
+
+    transition:
+        transform 0.3s ease;
+}
+
+.menu-sidebar:hover .brand-icon {
+    transform: rotate(15deg) scale(1.1);
+}
+
+
+/* =========================================
+   TEXTO DEL LOGO
+   ========================================= */
+
+.brand-text {
+    display: inline-block;
+
+    max-width: 0;
+    margin-left: 0;
+
+    opacity: 0;
+    transform: translateX(-10px);
+
+    overflow: hidden;
+    white-space: nowrap;
+
+    transition:
+        max-width 0.35s ease,
+        margin-left 0.35s ease,
+        opacity 0.25s ease,
+        transform 0.35s ease;
+}
+
+.menu-sidebar:hover .brand-text {
+    max-width: 180px;
+    margin-left: 8px;
+
+    opacity: 1;
+    transform: translateX(0);
+}
+
+
+/* =========================================
+   BOTÓN MÓVIL
+   ========================================= */
+
 .navbar-toggler {
     appearance: none;
     cursor: pointer;
+
     width: 3.5rem;
     height: 2.5rem;
+
     color: white;
+
     position: absolute;
     top: 0.5rem;
     right: 1rem;
+
     border: 1px solid rgba(255, 255, 255, 0.1);
-    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.55%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e") no-repeat center/1.75rem rgba(255, 255, 255, 0.1);
+
+    background: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.55%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e")
+        no-repeat center/1.75rem
+        rgba(255, 255, 255, 0.1);
 }
 
 .navbar-toggler:checked {
     background-color: rgba(255, 255, 255, 0.5);
 }
 
-.top-row {
-    min-height: 3.5rem;
-    background-color: rgba(0,0,0,0.4);
-}
 
-.navbar-brand {
-    font-size: 1.1rem;
-}
+/* =========================================
+   ICONOS
+   ========================================= */
 
 .bi {
     display: inline-block;
+
     position: relative;
+
     width: 1.25rem;
     height: 1.25rem;
+
+    min-width: 1.25rem;
+
     margin-right: 0.75rem;
+
     top: -1px;
+
     background-size: cover;
+
+    transition:
+        transform 0.25s ease,
+        margin-right 0.3s ease;
 }
+
+
+/* =========================================
+   ICONO HOME
+   ========================================= */
 
 .bi-house-door-fill-nav-menu {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' class='bi bi-house-door-fill' viewBox='0 0 16 16'%3E%3Cpath d='M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5Z'/%3E%3C/svg%3E");
 }
 
+
+/* =========================================
+   ICONO COUNTER
+   ========================================= */
+
 .bi-plus-square-fill-nav-menu {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' class='bi bi-plus-square-fill' viewBox='0 0 16 16'%3E%3Cpath d='M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm6.5 4.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3a.5.5 0 0 1 1 0z'/%3E%3C/svg%3E");
 }
 
+
+/* =========================================
+   ICONO WEATHER
+   ========================================= */
+
 .bi-list-nested-nav-menu {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' class='bi bi-list-nested' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M4.5 11.5A.5.5 0 0 1 5 11h10a.5.5 0 0 1 0 1H5a.5.5 0 0 1-.5-.5zm-2-4A.5.5 0 0 1 3 7h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm-2-4A.5.5 0 0 1 1 3h10a.5.5 0 0 1 0 1H1a.5.5 0 0 1-.5-.5z'/%3E%3C/svg%3E");
 }
+
+
+/* =========================================
+   ICONO EMPLEADOS
+   ========================================= */
+
+.bi-people-fill {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7Zm4-5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-5.784 1.895A5.01 5.01 0 0 0 5 14c0 .35.08.69.24 1H1s-1 0-1-1 1-4 5-4c.293 0 .57.03.832.087A5.02 5.02 0 0 0 5.216 10.895ZM5 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z'/%3E%3C/svg%3E");
+}
+
+
+/* =========================================
+   ITEMS
+   ========================================= */
 
 .nav-item {
     font-size: 0.9rem;
     padding-bottom: 0.5rem;
 }
 
-    .nav-item:first-of-type {
-        padding-top: 1rem;
-    }
-
-    .nav-item:last-of-type {
-        padding-bottom: 1rem;
-    }
-
-    .nav-item ::deep .nav-link {
-        color: #d7d7d7;
-        background: none;
-        border: none;
-        border-radius: 4px;
-        height: 3rem;
-        display: flex;
-        align-items: center;
-        line-height: 3rem;
-        width: 100%;
-    }
-
-.nav-item ::deep a.active {
-    background-color: rgba(255,255,255,0.37);
-    color: white;
+.nav-item:first-of-type {
+    padding-top: 1rem;
 }
+
+.nav-item:last-of-type {
+    padding-bottom: 1rem;
+}
+
+
+/* =========================================
+   ENLACES
+   ========================================= */
+
+.nav-item ::deep .nav-link {
+    color: #d7d7d7;
+
+    background: none;
+    border: none;
+
+    border-radius: 8px;
+
+    height: 3rem;
+
+    display: flex;
+    align-items: center;
+
+    line-height: 3rem;
+
+    width: 100%;
+
+    overflow: hidden;
+
+    transition:
+        background-color 0.25s ease,
+        color 0.25s ease,
+        transform 0.25s ease;
+}
+
+
+/* =========================================
+   TEXTO DE LOS ENLACES
+   ========================================= */
+
+.menu-text {
+    display: inline-block;
+
+    max-width: 0;
+
+    opacity: 0;
+
+    transform: translateX(-12px);
+
+    overflow: hidden;
+
+    white-space: nowrap;
+
+    transition:
+        max-width 0.35s ease,
+        opacity 0.25s ease,
+        transform 0.35s ease;
+}
+
+.menu-sidebar:hover .menu-text {
+    max-width: 180px;
+
+    opacity: 1;
+
+    transform: translateX(0);
+}
+
+
+/* =========================================
+   ANIMACIÓN DE ICONOS
+   ========================================= */
+
+.menu-link:hover .menu-icon {
+    transform: translateX(5px) scale(1.12);
+}
+
+
+/* =========================================
+   HOVER DEL ENLACE
+   ========================================= */
 
 .nav-item ::deep .nav-link:hover {
-    background-color: rgba(255,255,255,0.1);
+    background-color: rgba(255, 255, 255, 0.12);
+
     color: white;
+
+    transform: translateX(3px);
 }
+
+
+/* =========================================
+   PÁGINA ACTIVA
+   ========================================= */
+
+.nav-item ::deep a.active {
+    background-color: rgba(255, 255, 255, 0.37);
+
+    color: white;
+
+    box-shadow:
+        inset 3px 0 0 rgba(255, 255, 255, 0.9);
+}
+
+
+/* =========================================
+   MENÚ SCROLLABLE
+   ========================================= */
 
 .nav-scrollable {
     display: none;
@@ -89,17 +300,53 @@
     display: block;
 }
 
+
+/* =========================================
+   ESCRITORIO
+   ========================================= */
+
 @media (min-width: 641px) {
+
     .navbar-toggler {
         display: none;
     }
 
     .nav-scrollable {
-        /* Never collapse the sidebar for wide screens */
         display: block;
 
-        /* Allow sidebar to scroll for tall menus */
         height: calc(100vh - 3.5rem);
+
         overflow-y: auto;
+        overflow-x: hidden;
+    }
+}
+
+
+/* =========================================
+   MÓVIL
+   ========================================= */
+
+@media (max-width: 640.98px) {
+
+    .menu-sidebar {
+        width: 100%;
+        height: auto;
+    }
+
+    .brand-text {
+        max-width: 180px;
+        margin-left: 8px;
+
+        opacity: 1;
+
+        transform: translateX(0);
+    }
+
+    .menu-text {
+        max-width: 180px;
+
+        opacity: 1;
+
+        transform: translateX(0);
     }
 }
