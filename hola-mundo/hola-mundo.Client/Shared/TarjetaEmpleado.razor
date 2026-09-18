@@ -1,10 +1,10 @@
-<div class="card mb-2">
-    <div class="card-body">
-        <h5 class="card-title">@Nombre</h5>
-        <p class="card-text">
-            <strong>Puesto:</strong> @Puesto <br />
-            <strong>Correo:</strong> @Correo
-        </p>
+<div class="employee-card">
+    <div class="employee-avatar">@Iniciales</div>
+
+    <div class="employee-info">
+        <h5>@Nombre</h5>
+        <span class="employee-puesto">@Puesto</span>
+        <span class="employee-correo">✉️ @Correo</span>
     </div>
 </div>
 
@@ -17,4 +17,11 @@
 
     [Parameter]
     public string Correo { get; set; } = string.Empty;
+
+    private string Iniciales =>
+        string.IsNullOrWhiteSpace(Nombre)
+            ? "?"
+            : string.Concat(Nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Take(2)
+                .Select(p => char.ToUpper(p[0])));
 }

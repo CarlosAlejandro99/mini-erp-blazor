@@ -1,315 +1,164 @@
 @page "/empleados"
 @rendermode InteractiveWebAssembly
 @using hola_mundo.Client.Shared
-@using System.Text.Json
-@inject IJSRuntime JS
+@using hola_mundo.Client.Models
+@using hola_mundo.Client.Services
+@inject IEmpleadoService EmpleadoService
 
-<PageTitle>Mini ERP | Empleados</PageTitle>
+<PageTitle>Empleados</PageTitle>
 
 <div class="empleados-page">
 
     <div class="background-effect effect-1"></div>
     <div class="background-effect effect-2"></div>
 
-    <div class="container position-relative">
-
-        <!-- ENCABEZADO -->
-        <section class="employees-header">
-
-            <div>
-
-                <div class="page-badge">
-                    <span class="pulse-dot"></span>
-                    Módulo de empleados
-                </div>
-
-                <h1>
-                    Gestión de
-                    <span class="gradient-text">Empleados</span>
-                </h1>
-
-                <p>
-                    Consulta y administra las personas registradas
-                    en tu Mini ERP.
-                </p>
-
-            </div>
-
-            <div class="header-icon">
-                👥
-            </div>
-
-        </section>
-
+    <div class="container">
 
         @if (empleados == null)
         {
-            <!-- LOADING -->
-
-            <section class="loading-section">
-
+            <div class="loading-section">
                 <div class="loading-card">
-
                     <img src="https://assets-v2.lottiefiles.com/a/03cdc6e0-118b-11ee-bf08-07d88a941cbd/fjMdlSoouM.gif"
-                         alt="Cargando información..."
-                         width="110"
-                         height="110" />
-
-                    <h3>
-                        Cargando empleados...
-                    </h3>
-
-                    <p>
-                        Estamos recuperando la información guardada.
-                    </p>
-
+                         alt="Cargando..." width="90" height="90" />
+                    <h3>Cargando información...</h3>
+                    <p>Por favor espera un momento...</p>
                 </div>
-
-            </section>
+            </div>
         }
         else
         {
-
-            <!-- ESTADÍSTICAS -->
-
-            <section class="stats-section">
-
-                <div class="stat-card">
-
-                    <div class="stat-icon purple">
-                        👥
+            <div class="employees-header">
+                <div>
+                    <div class="page-badge">
+                        <span class="pulse-dot"></span>
+                        Sistema de empleados activo
                     </div>
+                    <h1>
+                        Nuestro equipo
+                        <span class="gradient-text">en un solo lugar</span>
+                    </h1>
+                    <p>
+                        Consulta, busca y agrega empleados al directorio de la empresa
+                        en tiempo real.
+                    </p>
+                </div>
+                <div class="header-icon">👥</div>
+            </div>
 
+            <div class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-icon purple">👤</div>
                     <div>
-                        <span>Empleados registrados</span>
+                        <span>Total de empleados</span>
                         <strong>@empleados.Count</strong>
                     </div>
-
                 </div>
-
 
                 <div class="stat-card">
-
-                    <div class="stat-icon green">
-                        💾
-                    </div>
-
+                    <div class="stat-icon blue">💼</div>
                     <div>
-                        <span>Almacenamiento</span>
-                        <strong>Local</strong>
+                        <span>Puestos distintos</span>
+                        <strong>@PuestosUnicos</strong>
                     </div>
-
                 </div>
-
 
                 <div class="stat-card">
-
-                    <div class="stat-icon blue">
-                        ⚡
-                    </div>
-
+                    <div class="stat-icon green">🔎</div>
                     <div>
-                        <span>Estado</span>
-                        <strong>Activo</strong>
+                        <span>Resultados mostrados</span>
+                        <strong>@empleadosFiltrados.Count</strong>
                     </div>
-
                 </div>
+            </div>
 
-            </section>
-
-
-            <!-- LISTA DE EMPLEADOS -->
-
-            <section class="employees-section">
+            <div class="employees-section">
 
                 <div class="section-title">
-
                     <div>
-                        <span class="section-label">
-                            PERSONAL
-                        </span>
-
-                        <h2>
-                            Empleados registrados
-                        </h2>
+                        <span class="section-label">DIRECTORIO</span>
+                        <h2>Empleados registrados</h2>
                     </div>
-
-                    <div class="employee-count">
-                        @empleados.Count
-                        @(empleados.Count == 1 ? "empleado" : "empleados")
-                    </div>
-
+                    <span class="employee-count">
+                        @empleadosFiltrados.Count de @empleados.Count
+                    </span>
                 </div>
 
-
-                <!-- BUSCADOR -->
-
                 <div class="search-box">
-
-                    <span class="search-icon">
-                        🔍
-                    </span>
-
+                    <span class="search-icon">🔍</span>
                     <input type="text"
                            class="search-input"
                            placeholder="Buscar por nombre, puesto o correo..."
-                           @bind="busqueda"
-                           @bind:event="oninput" />
+                           value="@terminoBusqueda"
+                           @oninput="OnBuscar" />
 
-                    @if (!string.IsNullOrWhiteSpace(busqueda))
+                    @if (!string.IsNullOrWhiteSpace(terminoBusqueda))
                     {
-                        <button class="clear-search"
-                                @onclick="LimpiarBusqueda">
-                            ✕
-                        </button>
+                        <button class="clear-search" @onclick="LimpiarBusqueda">✕</button>
                     }
-
                 </div>
 
-
-                @if (empleadosFiltrados.Any())
+                @if (empleadosFiltrados.Count == 0)
                 {
-
-                    <div class="employees-grid">
-
-                        @foreach (var empleado in empleadosFiltrados)
-                        {
-                            <TarjetaEmpleado Nombre="@empleado.Nombre"
-                                             Puesto="@empleado.Puesto"
-                                             Correo="@empleado.Correo" />
-                        }
-
+                    <div class="empty-state">
+                        <div class="empty-icon">🗂️</div>
+                        <p>No se encontraron empleados que coincidan con "@terminoBusqueda".</p>
                     </div>
-
                 }
                 else
                 {
-
-                    <div class="empty-state">
-
-                        <div class="empty-icon">
-                            🔍
-                        </div>
-
-                        <h3>
-                            No encontramos empleados
-                        </h3>
-
-                        <p>
-                            Intenta buscar con otro nombre, puesto o correo.
-                        </p>
-
+                    <div class="employees-grid">
+                        @foreach (var empleado in empleadosFiltrados)
+                        {
+                            <TarjetaEmpleado Nombre="@empleado.Nombre"
+                                              Puesto="@empleado.Puesto"
+                                              Correo="@empleado.Correo" />
+                        }
                     </div>
-
                 }
-
-            </section>
-
-
-            <!-- AGREGAR EMPLEADO -->
-
-            <section class="add-section">
-
-                <div class="add-header">
-
-                    <div class="add-icon">
-                        ➕
-                    </div>
-
-                    <div>
-                        <span class="section-label">
-                            NUEVO REGISTRO
-                        </span>
-
-                        <h2>
-                            Agregar empleado
-                        </h2>
-
-                        <p>
-                            Registra una nueva persona en el sistema.
-                        </p>
-                    </div>
-
-                </div>
-
-
-                <div class="form-grid">
-
-                    <div class="form-group">
-
-                        <label for="nombreEmpleado">
-                            Nombre
-                        </label>
-
-                        <input id="nombreEmpleado"
-                               type="text"
-                               class="form-control custom-input"
-                               @bind="nombreEmpleado"
-                               placeholder="Ej. Juan Pérez" />
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="puestoEmpleado">
-                            Puesto
-                        </label>
-
-                        <input id="puestoEmpleado"
-                               type="text"
-                               class="form-control custom-input"
-                               @bind="puestoEmpleado"
-                               placeholder="Ej. Desarrollador" />
-
-                    </div>
-
-
-                    <div class="form-group">
-
-                        <label for="correoEmpleado">
-                            Correo
-                        </label>
-
-                        <input id="correoEmpleado"
-                               type="email"
-                               class="form-control custom-input"
-                               @bind="correoEmpleado"
-                               placeholder="Ej. juan@empresa.com" />
-
-                    </div>
-
-                </div>
-
-
-                <button class="add-button"
-                        @onclick="AgregarEmpleado">
-
-                    <span>➕</span>
-
-                    Agregar empleado
-
-                </button>
-
-            </section>
-
-
-            <!-- STORAGE -->
-
-            <div class="storage-info">
-
-                <span>💾</span>
-
-                Los empleados se guardan localmente en este navegador.
 
             </div>
 
+            <div class="add-section">
+                <div class="add-header">
+                    <div class="add-icon">➕</div>
+                    <div>
+                        <h2>Agregar empleado</h2>
+                        <p>Completa los datos para sumarlo al directorio.</p>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="nombreEmpleado">Nombre</label>
+                        <input id="nombreEmpleado" type="text" class="form-control custom-input"
+                               @bind="nombreEmpleado" placeholder="Ej. Laura Ramírez" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="puestoEmpleado">Puesto</label>
+                        <input id="puestoEmpleado" type="text" class="form-control custom-input"
+                               @bind="puestoEmpleado" placeholder="Ej. Diseñadora UX" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="correoEmpleado">Correo</label>
+                        <input id="correoEmpleado" type="email" class="form-control custom-input"
+                               @bind="correoEmpleado" placeholder="Ej. laura@empresa.com" />
+                    </div>
+                </div>
+
+                <button class="add-button" @onclick="AgregarEmpleado">
+                    ➕ Agregar empleado
+                </button>
+            </div>
+
+            <p class="storage-info">
+                Los datos se mantienen en memoria mientras la aplicación esté abierta.
+            </p>
         }
 
     </div>
-
 </div>
-
 
 @code {
 
@@ -319,136 +168,51 @@
     private string puestoEmpleado = string.Empty;
     private string correoEmpleado = string.Empty;
 
-    private string busqueda = string.Empty;
+    private string terminoBusqueda = string.Empty;
 
-    private const string StorageKey = "empleados-guardados";
+    private List<Empleado> empleadosFiltrados =>
+        empleados is null
+            ? new List<Empleado>()
+            : empleados.Where(e =>
+                string.IsNullOrWhiteSpace(terminoBusqueda) ||
+                e.Nombre.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ||
+                e.Puesto.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase) ||
+                e.Correo.Contains(terminoBusqueda, StringComparison.OrdinalIgnoreCase)
+              ).ToList();
 
-
-    private IEnumerable<Empleado> empleadosFiltrados =>
-        empleados?.Where(e =>
-            string.IsNullOrWhiteSpace(busqueda)
-            ||
-            e.Nombre.Contains(busqueda, StringComparison.OrdinalIgnoreCase)
-            ||
-            e.Puesto.Contains(busqueda, StringComparison.OrdinalIgnoreCase)
-            ||
-            e.Correo.Contains(busqueda, StringComparison.OrdinalIgnoreCase)
-        )
-        ?? Enumerable.Empty<Empleado>();
-
+    private int PuestosUnicos =>
+        empleados?.Select(e => e.Puesto).Distinct().Count() ?? 0;
 
     protected override async Task OnInitializedAsync()
     {
-        if (!OperatingSystem.IsBrowser())
-        {
-            return;
-        }
-
-        await Task.Delay(1000);
-
-        var datosGuardados =
-            await JS.InvokeAsync<string?>(
-                "localStorage.getItem",
-                StorageKey);
-
-        if (!string.IsNullOrWhiteSpace(datosGuardados))
-        {
-            empleados =
-                JsonSerializer.Deserialize<List<Empleado>>(
-                    datosGuardados);
-        }
-        else
-        {
-            empleados = new List<Empleado>
-            {
-                new Empleado
-                {
-                    Nombre = "Carlos Núñez",
-                    Puesto = "Administrador",
-                    Correo = "carlos@empresa.com"
-                },
-
-                new Empleado
-                {
-                    Nombre = "Ana López",
-                    Puesto = "Desarrolladora",
-                    Correo = "ana@empresa.com"
-                },
-
-                new Empleado
-                {
-                    Nombre = "José Martínez",
-                    Puesto = "Soporte técnico",
-                    Correo = "jose@empresa.com"
-                },
-
-                new Empleado
-                {
-                    Nombre = "María González",
-                    Puesto = "Analista",
-                    Correo = "maria@empresa.com"
-                }
-            };
-
-            await GuardarEnStorage();
-        }
+        await Task.Delay(500);
+        empleados = EmpleadoService.ObtenerTodos();
     }
 
-
-    private async Task AgregarEmpleado()
+    private void OnBuscar(ChangeEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(nombreEmpleado)
-            || empleados == null)
-        {
-            return;
-        }
-
-        empleados.Add(new Empleado
-        {
-            Nombre = nombreEmpleado.Trim(),
-
-            Puesto = string.IsNullOrWhiteSpace(puestoEmpleado)
-                ? "Por definir"
-                : puestoEmpleado.Trim(),
-
-            Correo = string.IsNullOrWhiteSpace(correoEmpleado)
-                ? "-"
-                : correoEmpleado.Trim()
-        });
-
-
-        nombreEmpleado = string.Empty;
-        puestoEmpleado = string.Empty;
-        correoEmpleado = string.Empty;
-
-
-        await GuardarEnStorage();
+        terminoBusqueda = e.Value?.ToString() ?? string.Empty;
     }
-
-
-    private async Task GuardarEnStorage()
-    {
-        var json =
-            JsonSerializer.Serialize(empleados);
-
-        await JS.InvokeVoidAsync(
-            "localStorage.setItem",
-            StorageKey,
-            json);
-    }
-
 
     private void LimpiarBusqueda()
     {
-        busqueda = string.Empty;
+        terminoBusqueda = string.Empty;
     }
 
-
-    private class Empleado
+    private void AgregarEmpleado()
     {
-        public string Nombre { get; set; } = "";
-        public string Puesto { get; set; } = "";
-        public string Correo { get; set; } = "";
-    }
+        if (!string.IsNullOrWhiteSpace(nombreEmpleado))
+        {
+            EmpleadoService.Agregar(new Empleado
+            {
+                Nombre = nombreEmpleado,
+                Puesto = string.IsNullOrWhiteSpace(puestoEmpleado) ? "Por definir" : puestoEmpleado,
+                Correo = string.IsNullOrWhiteSpace(correoEmpleado) ? "-" : correoEmpleado
+            });
 
+            nombreEmpleado = string.Empty;
+            puestoEmpleado = string.Empty;
+            correoEmpleado = string.Empty;
+        }
+    }
 }

@@ -1,0 +1,66 @@
+.employee-card {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    padding: 22px;
+
+    border-radius: 18px;
+
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.08);
+
+    backdrop-filter: blur(15px);
+
+    transition: .3s;
+}
+
+.employee-card:hover {
+    background: rgba(255,255,255,.08);
+    border-color: rgba(129,140,248,.35);
+}
+
+.employee-avatar {
+    flex-shrink: 0;
+    width: 55px;
+    height: 55px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 14px;
+
+    font-weight: 700;
+    font-size: 1.1rem;
+
+    color: white;
+
+    background: linear-gradient(135deg, #6366f1, #a855f7);
+}
+
+.employee-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+}
+
+.employee-info h5 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: white;
+}
+
+.employee-puesto {
+    color: #a78bfa;
+    font-size: .85rem;
+    font-weight: 600;
+}
+
+.employee-correo {
+    color: #94a3b8;
+    font-size: .82rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
