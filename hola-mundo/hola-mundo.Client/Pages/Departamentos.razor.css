@@ -1,0 +1,209 @@
+.departamentos-container {
+    padding: 30px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.departamentos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.departamentos-badge {
+    display: inline-block;
+    padding: 7px 14px;
+    border-radius: 20px;
+    background: #eef2ff;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.departamentos-header h1 {
+    margin: 10px 0 5px;
+    font-size: 32px;
+}
+
+.departamentos-header p {
+    margin: 0;
+    color: #6b7280;
+}
+
+.departamentos-total {
+    min-width: 150px;
+    padding: 20px;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.departamentos-total span {
+    display: block;
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.departamentos-total strong {
+    display: block;
+    margin-top: 5px;
+    font-size: 30px;
+}
+
+.departamentos-content {
+    display: grid;
+    grid-template-columns: 330px 1fr;
+    gap: 25px;
+}
+
+.departamentos-form-card,
+.departamentos-lista {
+    background: white;
+    border-radius: 20px;
+    padding: 25px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.07);
+}
+
+.departamentos-form-card h2,
+.departamentos-lista h2 {
+    margin-top: 0;
+}
+
+.form-group {
+    margin: 25px 0;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.form-control {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 15px;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.btn-agregar {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    padding: 13px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #4f46e5;
+    color: white;
+    transition: 0.2s;
+}
+
+.btn-agregar:hover {
+    transform: translateY(-2px);
+}
+
+.mensaje {
+    margin-bottom: 15px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 14px;
+}
+
+.lista-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.lista-header span {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+.departamentos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 18px;
+}
+
+.departamento-card {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 20px;
+    border: 1px solid #e5e7eb;
+    border-radius: 15px;
+    transition: 0.2s;
+}
+
+.departamento-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.departamento-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: #eef2ff;
+    font-size: 25px;
+}
+
+.departamento-info h3 {
+    margin: 0 0 5px;
+    font-size: 17px;
+}
+
+.departamento-info span {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.sin-departamentos {
+    padding: 60px 20px;
+    text-align: center;
+    color: #6b7280;
+}
+
+.sin-departamentos-icon {
+    font-size: 50px;
+    margin-bottom: 10px;
+}
+
+.sin-departamentos h3 {
+    color: #374151;
+    margin-bottom: 5px;
+}
+
+@media (max-width: 800px) {
+
+    .departamentos-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .departamentos-content {
+        grid-template-columns: 1fr;
+    }
+
+    .departamentos-container {
+        padding: 20px;
+    }
+}

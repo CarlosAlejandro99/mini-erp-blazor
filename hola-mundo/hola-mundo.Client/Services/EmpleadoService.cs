@@ -1,48 +1,42 @@
-
+using System.Net.Http.Json;
 using hola_mundo.Client.Models;
 
 namespace hola_mundo.Client.Services;
 
 public class EmpleadoService : IEmpleadoService
 {
-    private readonly List<Empleado> _empleados = new()
+    private readonly HttpClient _httpClient;
+
+    public EmpleadoService(HttpClient httpClient)
     {
-        new Empleado
-        {
-            Nombre = "Carlos Núñez",
-            Puesto = "Administrador",
-            Correo = "carlos@empresa.com"
-        },
-
-        new Empleado
-        {
-            Nombre = "Ana López",
-            Puesto = "Desarrolladora",
-            Correo = "ana@empresa.com"
-        },
-
-        new Empleado
-        {
-            Nombre = "José Martínez",
-            Puesto = "Soporte técnico",
-            Correo = "jose@empresa.com"
-        },
-
-        new Empleado
-        {
-            Nombre = "María González",
-            Puesto = "Analista",
-            Correo = "maria@empresa.com"
-        }
-    };
-
-    public List<Empleado> ObtenerTodos()
-    {
-        return _empleados;
+        _httpClient = httpClient;
     }
 
-    public void Agregar(Empleado empleado)
+    public async Task<List<Empleado>> ObtenerTodosAsync()
     {
-        _empleados.Add(empleado);
+        var empleados = await _httpClient.GetFromJsonAsync<List<Empleado>>(
+            "api/empleados"
+        );
+
+        return empleados ?? new List<Empleado>();
+    }
+
+    public async Task AgregarAsync(Empleado empleado)
+    {
+        var response = await _httpClient.PostAsJsonAsync(
+            "api/empleados",
+            empleado
+        );
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    public async Task<bool> ExisteNumeroEmpleadoAsync(string numeroEmpleado)
+    {
+        var existe = await _httpClient.GetFromJsonAsync<bool>(
+            $"api/empleados/existe/{Uri.EscapeDataString(numeroEmpleado)}"
+        );
+
+        return existe;
     }
 }
