@@ -1,10 +1,11 @@
+```razor
 @page "/empleados"
 @rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 
 @using System.Linq
-@using hola_mundo.Client.Shared
 @using hola_mundo.Client.Models
 @using hola_mundo.Client.Services
+@using hola_mundo.Client.Shared
 
 @inject IEmpleadoService EmpleadoService
 @inject IDepartamentoService DepartamentoService
@@ -19,7 +20,7 @@
 
     <div class="container">
 
-        @if (empleados == null)
+        @if (empleados is null)
         {
             <div class="loading-section">
                 <div class="loading-card">
@@ -152,7 +153,7 @@
 
 
                 <!-- =========================================
-                     BUSCADOR
+                     BUSCADOR EN VIVO
                      ========================================= -->
 
                 <div class="search-box">
@@ -164,21 +165,24 @@
                     <input type="text"
                            class="search-input"
                            placeholder="Buscar por nombre, puesto o correo..."
-                           value="@terminoBusqueda"
-                           @oninput="OnBuscar" />
+                           @bind="terminoBusqueda"
+                           @bind:event="oninput" />
 
                     @if (!string.IsNullOrWhiteSpace(terminoBusqueda))
                     {
-                        <button class="clear-search"
+                        <button type="button"
+                                class="clear-search"
                                 @onclick="LimpiarBusqueda">
+
                             ✕
+
                         </button>
                     }
 
                 </div>
 
 
-                @if (terminoBusqueda.Length == 1)
+                @if (terminoBusqueda.Trim().Length == 1)
                 {
                     <div class="search-message">
                         🔎 Escribe al menos 2 caracteres para realizar la búsqueda.
@@ -195,7 +199,9 @@
                      aria-label="Selector de vista">
 
                     <button type="button"
-                            class="btn @(vistaActual == "tarjetas" ? "btn-primary" : "btn-outline-primary")"
+                            class="btn @(vistaActual == "tarjetas"
+                                ? "btn-primary"
+                                : "btn-outline-primary")"
                             @onclick='() => vistaActual = "tarjetas"'>
 
                         🗂️ Tarjetas
@@ -203,7 +209,9 @@
                     </button>
 
                     <button type="button"
-                            class="btn @(vistaActual == "tabla" ? "btn-primary" : "btn-outline-primary")"
+                            class="btn @(vistaActual == "tabla"
+                                ? "btn-primary"
+                                : "btn-outline-primary")"
                             @onclick='() => vistaActual = "tabla"'>
 
                         📋 Tabla
@@ -263,21 +271,13 @@
                                     <tr>
 
                                         <th>#</th>
-
                                         <th>No. empleado</th>
-
                                         <th>Nombre</th>
-
                                         <th>Género</th>
-
                                         <th>Cumpleaños</th>
-
                                         <th>CURP</th>
-
                                         <th>Teléfono</th>
-
                                         <th>Puesto</th>
-
                                         <th>Correo</th>
 
                                     </tr>
@@ -287,11 +287,9 @@
                                 <tbody>
 
                                     @{
-
                                         int contador =
                                             (paginaActual - 1) *
-                                            empleadosPorPagina;
-
+                                            EmpleadosPorPagina;
                                     }
 
                                     @foreach (var empleado in empleadosPaginados)
@@ -331,9 +329,7 @@
                                             <td>
 
                                                 <span class="badge bg-primary-subtle text-primary-emphasis">
-
                                                     @empleado.Puesto
-
                                                 </span>
 
                                             </td>
@@ -423,10 +419,7 @@
 
                     <div class="form-grid">
 
-
-                        <!-- =========================================
-                             NO. DE EMPLEADO
-                             ========================================= -->
+                        <!-- NO. DE EMPLEADO -->
 
                         <div class="form-group">
 
@@ -455,9 +448,7 @@
                         </div>
 
 
-                        <!-- =========================================
-                             NOMBRE
-                             ========================================= -->
+                        <!-- NOMBRE -->
 
                         <div class="form-group">
 
@@ -478,9 +469,7 @@
                         </div>
 
 
-                        <!-- =========================================
-                             GÉNERO
-                             ========================================= -->
+                        <!-- GÉNERO -->
 
                         <div class="form-group">
 
@@ -517,9 +506,7 @@
                         </div>
 
 
-                        <!-- =========================================
-                             FECHA DE CUMPLEAÑOS
-                             ========================================= -->
+                        <!-- FECHA -->
 
                         <div class="form-group">
 
@@ -538,9 +525,7 @@
                         </div>
 
 
-                        <!-- =========================================
-                             CURP
-                             ========================================= -->
+                        <!-- CURP -->
 
                         <div class="form-group">
 
@@ -561,9 +546,7 @@
                         </div>
 
 
-                        <!-- =========================================
-                             TELÉFONO
-                             ========================================= -->
+                        <!-- TELÉFONO -->
 
                         <div class="form-group">
 
@@ -585,9 +568,7 @@
                         </div>
 
 
-                        <!-- =========================================
-                             ÁREA / DEPARTAMENTO
-                             ========================================= -->
+                        <!-- ÁREA -->
 
                         <div class="form-group">
 
@@ -620,9 +601,7 @@
                         </div>
 
 
-                        <!-- =========================================
-                             PUESTO
-                             ========================================= -->
+                        <!-- PUESTO -->
 
                         <div class="form-group">
 
@@ -633,6 +612,7 @@
                             <InputSelect id="puestoEmpleado"
                                          class="form-select custom-input"
                                          @bind-Value="nuevoEmpleado.PuestoId"
+                                         @bind-Value:after="CambiarPuesto"
                                          disabled="@(nuevoEmpleado.DepartamentoId == 0 || cargandoPuestos)">
 
                                 @if (nuevoEmpleado.DepartamentoId == 0)
@@ -685,9 +665,7 @@
                         </div>
 
 
-                        <!-- =========================================
-                             CORREO
-                             ========================================= -->
+                        <!-- CORREO -->
 
                         <div class="form-group">
 
@@ -724,9 +702,7 @@
             </div>
 
 
-            <!-- =========================================
-                 INFORMACIÓN
-                 ========================================= -->
+            <!-- INFORMACIÓN -->
 
             <p class="storage-info">
 
@@ -745,61 +721,27 @@
 @code {
 
     // =========================================
-    // LISTA DE EMPLEADOS
+    // DATOS
     // =========================================
 
     private List<Empleado>? empleados;
 
-
-    // =========================================
-    // NUEVO EMPLEADO
-    // =========================================
-
     private Empleado nuevoEmpleado = new();
 
-
-    // =========================================
-    // DEPARTAMENTOS
-    // =========================================
-
     private List<Departamento> departamentos = new();
-
-
-    // =========================================
-    // PUESTOS DISPONIBLES
-    // =========================================
 
     private List<Puesto> puestosDisponibles = new();
 
 
     // =========================================
-    // ESTADO DE PUESTOS
+    // ESTADO
     // =========================================
 
-    private bool cargandoPuestos = false;
-
-
-    // =========================================
-    // MENSAJE NÚMERO DE EMPLEADO
-    // =========================================
+    private bool cargandoPuestos;
 
     private string mensajeNumeroEmpleado = string.Empty;
 
-
-    // =========================================
-    // BUSCADOR
-    // =========================================
-
     private string terminoBusqueda = string.Empty;
-
-    private string terminoBusquedaAplicado = string.Empty;
-
-    private CancellationTokenSource? busquedaCancellation;
-
-
-    // =========================================
-    // VISTA
-    // =========================================
 
     private string vistaActual = "tarjetas";
 
@@ -808,7 +750,7 @@
     // PAGINACIÓN
     // =========================================
 
-    private int empleadosPorPagina = 4;
+    private const int EmpleadosPorPagina = 4;
 
     private int paginaActual = 1;
 
@@ -820,38 +762,39 @@
     private List<Empleado> empleadosFiltrados =>
         empleados is null
             ? new List<Empleado>()
-            : empleados.Where(e =>
-                string.IsNullOrWhiteSpace(terminoBusquedaAplicado) ||
+            : empleados
+                .Where(e =>
+                    string.IsNullOrWhiteSpace(terminoBusqueda) ||
 
-                e.Nombre.Contains(
-                    terminoBusquedaAplicado,
-                    StringComparison.OrdinalIgnoreCase) ||
+                    e.Nombre.Contains(
+                        terminoBusqueda.Trim(),
+                        StringComparison.OrdinalIgnoreCase) ||
 
-                e.Puesto.Contains(
-                    terminoBusquedaAplicado,
-                    StringComparison.OrdinalIgnoreCase) ||
+                    e.Puesto.Contains(
+                        terminoBusqueda.Trim(),
+                        StringComparison.OrdinalIgnoreCase) ||
 
-                e.Correo.Contains(
-                    terminoBusquedaAplicado,
-                    StringComparison.OrdinalIgnoreCase) ||
+                    e.Correo.Contains(
+                        terminoBusqueda.Trim(),
+                        StringComparison.OrdinalIgnoreCase) ||
 
-                e.NumeroEmpleado.Contains(
-                    terminoBusquedaAplicado,
-                    StringComparison.OrdinalIgnoreCase) ||
+                    e.NumeroEmpleado.Contains(
+                        terminoBusqueda.Trim(),
+                        StringComparison.OrdinalIgnoreCase) ||
 
-                e.CURP.Contains(
-                    terminoBusquedaAplicado,
-                    StringComparison.OrdinalIgnoreCase) ||
+                    e.CURP.Contains(
+                        terminoBusqueda.Trim(),
+                        StringComparison.OrdinalIgnoreCase) ||
 
-                e.Telefono.Contains(
-                    terminoBusquedaAplicado,
-                    StringComparison.OrdinalIgnoreCase) ||
+                    e.Telefono.Contains(
+                        terminoBusqueda.Trim(),
+                        StringComparison.OrdinalIgnoreCase) ||
 
-                e.Genero.Contains(
-                    terminoBusquedaAplicado,
-                    StringComparison.OrdinalIgnoreCase)
-
-            ).ToList();
+                    e.Genero.Contains(
+                        terminoBusqueda.Trim(),
+                        StringComparison.OrdinalIgnoreCase)
+                )
+                .ToList();
 
 
     // =========================================
@@ -863,7 +806,7 @@
             1,
             (int)Math.Ceiling(
                 empleadosFiltrados.Count /
-                (double)empleadosPorPagina
+                (double)EmpleadosPorPagina
             )
         );
 
@@ -876,9 +819,9 @@
         empleadosFiltrados
             .Skip(
                 (paginaActual - 1) *
-                empleadosPorPagina
+                EmpleadosPorPagina
             )
-            .Take(empleadosPorPagina)
+            .Take(EmpleadosPorPagina)
             .ToList();
 
 
@@ -913,14 +856,11 @@
 
     private async Task CambiarDepartamento()
     {
-        // Limpiar el puesto anterior.
         nuevoEmpleado.PuestoId = 0;
         nuevoEmpleado.Puesto = string.Empty;
 
         puestosDisponibles = new();
 
-        // Si no hay área seleccionada,
-        // el puesto permanece deshabilitado.
         if (nuevoEmpleado.DepartamentoId <= 0)
         {
             return;
@@ -936,7 +876,8 @@
         }
         catch (Exception)
         {
-            puestosDisponibles = new List<Puesto>();
+            puestosDisponibles =
+                new List<Puesto>();
         }
         finally
         {
@@ -955,94 +896,8 @@
             puestosDisponibles.FirstOrDefault(
                 p => p.Id == nuevoEmpleado.PuestoId);
 
-        if (puestoSeleccionado is null)
-        {
-            nuevoEmpleado.Puesto = string.Empty;
-            return;
-        }
-
         nuevoEmpleado.Puesto =
-            puestoSeleccionado.Nombre;
-    }
-
-
-    // =========================================
-    // BUSCADOR
-    // =========================================
-
-    private async Task OnBuscar(ChangeEventArgs e)
-    {
-        terminoBusqueda =
-            e.Value?.ToString() ?? string.Empty;
-
-        busquedaCancellation?.Cancel();
-        busquedaCancellation?.Dispose();
-
-        busquedaCancellation =
-            new CancellationTokenSource();
-
-        var token =
-            busquedaCancellation.Token;
-
-
-        if (string.IsNullOrWhiteSpace(terminoBusqueda))
-        {
-            terminoBusquedaAplicado =
-                string.Empty;
-
-            paginaActual = 1;
-
-            await InvokeAsync(
-                StateHasChanged
-            );
-
-            return;
-        }
-
-
-        if (terminoBusqueda.Trim().Length < 2)
-        {
-            terminoBusquedaAplicado =
-                string.Empty;
-
-            paginaActual = 1;
-
-            await InvokeAsync(
-                StateHasChanged
-            );
-
-            return;
-        }
-
-
-        try
-        {
-            await Task.Delay(
-                500,
-                token
-            );
-
-
-            if (token.IsCancellationRequested)
-            {
-                return;
-            }
-
-
-            terminoBusquedaAplicado =
-                terminoBusqueda.Trim();
-
-            paginaActual = 1;
-
-
-            await InvokeAsync(
-                StateHasChanged
-            );
-        }
-        catch (TaskCanceledException)
-        {
-            // Búsqueda cancelada.
-        }
+            puestoSeleccionado?.Nombre ?? string.Empty;
     }
 
 
@@ -1052,13 +907,7 @@
 
     private void LimpiarBusqueda()
     {
-        busquedaCancellation?.Cancel();
-        busquedaCancellation?.Dispose();
-
         terminoBusqueda =
-            string.Empty;
-
-        terminoBusquedaAplicado =
             string.Empty;
 
         paginaActual = 1;
@@ -1066,7 +915,7 @@
 
 
     // =========================================
-    // PÁGINA ANTERIOR
+    // PAGINACIÓN
     // =========================================
 
     private void PaginaAnterior()
@@ -1077,10 +926,6 @@
         }
     }
 
-
-    // =========================================
-    // PÁGINA SIGUIENTE
-    // =========================================
 
     private void PaginaSiguiente()
     {
@@ -1118,15 +963,11 @@
         nuevoEmpleado.Telefono =
             nuevoEmpleado.Telefono.Trim();
 
-        nuevoEmpleado.Puesto =
-            nuevoEmpleado.Puesto.Trim();
-
         nuevoEmpleado.Correo =
             nuevoEmpleado.Correo.Trim();
 
 
-        // Asegurar que el puesto corresponda
-        // al departamento seleccionado.
+        // Obtener el puesto seleccionado
 
         var puestoSeleccionado =
             puestosDisponibles.FirstOrDefault(
@@ -1143,7 +984,7 @@
             puestoSeleccionado.Nombre;
 
 
-        // Comprobar número duplicado
+        // Comprobar número de empleado duplicado
 
         if (await EmpleadoService.ExisteNumeroEmpleadoAsync(
                 nuevoEmpleado.NumeroEmpleado))
@@ -1155,14 +996,13 @@
         }
 
 
-        // Agregar empleado
+        // Guardar empleado
 
         await EmpleadoService.AgregarAsync(
-            nuevoEmpleado
-        );
+            nuevoEmpleado);
 
 
-        // Actualizar la lista desde SQL Server
+        // Actualizar empleados
 
         empleados =
             await EmpleadoService.ObtenerTodosAsync();
@@ -1176,10 +1016,16 @@
         puestosDisponibles =
             new List<Puesto>();
 
-
-        // Regresar a primera página
-
         paginaActual = 1;
     }
 
 }
+```
+
+Ahora ejecuta **exactamente**:
+
+```powershell
+dotnet build
+```
+
+Si sale **`Compilación correcta`**, ya pasamos al siguiente punto del Día 10: **crear el `README.md` completo** y después hacemos `git add`, `commit`, `push` y la PR a `main`.
