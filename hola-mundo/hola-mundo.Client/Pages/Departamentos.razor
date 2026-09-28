@@ -1,0 +1,474 @@
+@page "/departamentos"
+
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+
+@using hola_mundo.Client.Models
+@using hola_mundo.Client.Services
+
+@inject IDepartamentoService DepartamentoService
+@inject IPuestoService PuestoService
+
+<PageTitle>Departamentos</PageTitle>
+
+<div class="departamentos-container">
+
+    <div class="departamentos-header">
+        <div>
+            <span class="departamentos-badge">🏢 Organización</span>
+
+            <h1>Departamentos</h1>
+
+            <p>
+                Administra las áreas de trabajo y sus puestos.
+            </p>
+        </div>
+
+        <div class="departamentos-total">
+            <span>Departamentos</span>
+            <strong>@departamentos.Count</strong>
+        </div>
+    </div>
+
+    <div class="departamentos-content">
+
+        <!-- AGREGAR DEPARTAMENTO -->
+
+        <div class="departamentos-form-card">
+
+            <h2>Agregar departamento</h2>
+
+            <div class="form-group">
+
+                <label>
+                    Nombre del departamento
+                </label>
+
+                <input
+                    class="form-control"
+                    @bind="nuevoDepartamento"
+                    placeholder="Ej. Sistemas" />
+
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(mensajeDepartamento))
+            {
+                <div class="mensaje">
+                    @mensajeDepartamento
+                </div>
+            }
+
+            <button
+                class="btn-agregar"
+                @onclick="AgregarDepartamento"
+                disabled="@guardandoDepartamento">
+
+                @if (guardandoDepartamento)
+                {
+                    <span>Guardando...</span>
+                }
+                else
+                {
+                    <span>➕ Agregar departamento</span>
+                }
+
+            </button>
+
+        </div>
+
+
+        <!-- LISTA DE DEPARTAMENTOS -->
+
+        <div class="departamentos-lista">
+
+            <div class="lista-header">
+
+                <h2>Áreas registradas</h2>
+
+                <span>
+                    @departamentos.Count áreas
+                </span>
+
+            </div>
+
+            @if (cargando)
+            {
+                <div class="sin-departamentos">
+
+                    <div class="sin-departamentos-icon">
+                        ⏳
+                    </div>
+
+                    <h3>Cargando departamentos...</h3>
+
+                    <p>
+                        Consultando información en SQL Server.
+                    </p>
+
+                </div>
+            }
+            else if (departamentos.Count == 0)
+            {
+                <div class="sin-departamentos">
+
+                    <div class="sin-departamentos-icon">
+                        🏢
+                    </div>
+
+                    <h3>No hay departamentos</h3>
+
+                    <p>
+                        Agrega el primer departamento para comenzar.
+                    </p>
+
+                </div>
+            }
+            else
+            {
+                <div class="departamentos-grid">
+
+                    @foreach (var departamento in departamentos)
+                    {
+                        <div class="departamento-card">
+
+                            <div class="departamento-icon">
+                                🏢
+                            </div>
+
+                            <div class="departamento-info">
+
+                                <h3>
+                                    @departamento.Nombre
+                                </h3>
+
+                                <span>
+                                    Departamento
+                                </span>
+
+                            </div>
+
+
+                            <!-- PUESTOS DEL DEPARTAMENTO -->
+
+                            <div class="puestos-seccion">
+
+                                <div class="puestos-header">
+
+                                    <h4>💼 Puestos</h4>
+
+                                    <span>
+                                        @ObtenerPuestos(departamento.Id).Count
+                                    </span>
+
+                                </div>
+
+
+                                @if (cargandoPuestos.Contains(departamento.Id))
+                                {
+                                    <div class="puestos-cargando">
+                                        Cargando puestos...
+                                    </div>
+                                }
+                                else
+                                {
+                                    var puestosDepartamento =
+                                        ObtenerPuestos(departamento.Id);
+
+                                    if (puestosDepartamento.Count == 0)
+                                    {
+                                        <div class="sin-puestos">
+                                            Aún no hay puestos registrados.
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="puestos-lista">
+
+                                            @foreach (var puesto in puestosDepartamento)
+                                            {
+                                                <div class="puesto-item">
+
+                                                    <span>
+                                                        💼 @puesto.Nombre
+                                                    </span>
+
+                                                </div>
+                                            }
+
+                                        </div>
+                                    }
+                                }
+
+
+                                <!-- AGREGAR PUESTO -->
+
+                                @if (departamentoSeleccionadoId == departamento.Id)
+                                {
+                                    <div class="puesto-form">
+
+                                        <input
+                                            class="form-control"
+                                            @bind="nuevoPuesto"
+                                            placeholder="Ej. Programador" />
+
+                                        <button
+                                            class="btn-agregar-puesto"
+                                            @onclick="() => AgregarPuesto(departamento.Id)"
+                                            disabled="@guardandoPuesto">
+
+                                            @if (guardandoPuesto)
+                                            {
+                                                <span>Guardando...</span>
+                                            }
+                                            else
+                                            {
+                                                <span>➕ Agregar puesto</span>
+                                            }
+
+                                        </button>
+
+                                        @if (!string.IsNullOrWhiteSpace(mensajePuesto))
+                                        {
+                                            <div class="mensaje">
+                                                @mensajePuesto
+                                            </div>
+                                        }
+
+                                    </div>
+                                }
+                                else
+                                {
+                                    <button
+                                        class="btn-mostrar-puesto"
+                                        @onclick="() => MostrarFormularioPuesto(departamento.Id)">
+
+                                        ➕ Nuevo puesto
+                                    </button>
+                                }
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@code {
+
+    private List<Departamento> departamentos = new();
+
+    private Dictionary<int, List<Puesto>> puestosPorDepartamento = new();
+
+    private HashSet<int> cargandoPuestos = new();
+
+    private string nuevoDepartamento = string.Empty;
+
+    private string nuevoPuesto = string.Empty;
+
+    private string mensajeDepartamento = string.Empty;
+
+    private string mensajePuesto = string.Empty;
+
+    private bool cargando = true;
+
+    private bool guardandoDepartamento = false;
+
+    private bool guardandoPuesto = false;
+
+    private int? departamentoSeleccionadoId = null;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            departamentos =
+                await DepartamentoService.ObtenerTodosAsync();
+
+            foreach (var departamento in departamentos)
+            {
+                await CargarPuestos(departamento.Id);
+            }
+        }
+        catch (Exception)
+        {
+            mensajeDepartamento =
+                "No fue posible cargar los departamentos.";
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+
+    private async Task CargarPuestos(int departamentoId)
+    {
+        cargandoPuestos.Add(departamentoId);
+
+        try
+        {
+            var puestos =
+                await PuestoService.ObtenerPorDepartamentoAsync(
+                    departamentoId);
+
+            puestosPorDepartamento[departamentoId] = puestos;
+        }
+        catch (Exception)
+        {
+            puestosPorDepartamento[departamentoId] =
+                new List<Puesto>();
+        }
+        finally
+        {
+            cargandoPuestos.Remove(departamentoId);
+        }
+    }
+
+
+    private List<Puesto> ObtenerPuestos(int departamentoId)
+    {
+        if (puestosPorDepartamento.TryGetValue(
+            departamentoId,
+            out var puestos))
+        {
+            return puestos;
+        }
+
+        return new List<Puesto>();
+    }
+
+
+    private void MostrarFormularioPuesto(int departamentoId)
+    {
+        departamentoSeleccionadoId = departamentoId;
+
+        nuevoPuesto = string.Empty;
+
+        mensajePuesto = string.Empty;
+    }
+
+
+    private async Task AgregarDepartamento()
+    {
+        mensajeDepartamento = string.Empty;
+
+        var nombre =
+            nuevoDepartamento.Trim();
+
+        if (string.IsNullOrWhiteSpace(nombre))
+        {
+            mensajeDepartamento =
+                "Escribe el nombre del departamento.";
+
+            return;
+        }
+
+        if (departamentos.Any(d =>
+            d.Nombre.Equals(
+                nombre,
+                StringComparison.OrdinalIgnoreCase)))
+        {
+            mensajeDepartamento =
+                "Ese departamento ya existe.";
+
+            return;
+        }
+
+        guardandoDepartamento = true;
+
+        try
+        {
+            var departamento = new Departamento
+            {
+                Nombre = nombre
+            };
+
+            await DepartamentoService.AgregarAsync(
+                departamento);
+
+            departamentos =
+                await DepartamentoService.ObtenerTodosAsync();
+
+            nuevoDepartamento = string.Empty;
+
+            mensajeDepartamento =
+                "Departamento agregado correctamente.";
+
+            await CargarPuestos(departamento.Id);
+        }
+        catch (Exception)
+        {
+            mensajeDepartamento =
+                "No fue posible guardar el departamento.";
+        }
+        finally
+        {
+            guardandoDepartamento = false;
+        }
+    }
+
+
+    private async Task AgregarPuesto(int departamentoId)
+    {
+        mensajePuesto = string.Empty;
+
+        var nombre =
+            nuevoPuesto.Trim();
+
+        if (string.IsNullOrWhiteSpace(nombre))
+        {
+            mensajePuesto =
+                "Escribe el nombre del puesto.";
+
+            return;
+        }
+
+        if (ObtenerPuestos(departamentoId).Any(p =>
+            p.Nombre.Equals(
+                nombre,
+                StringComparison.OrdinalIgnoreCase)))
+        {
+            mensajePuesto =
+                "Ese puesto ya existe en este departamento.";
+
+            return;
+        }
+
+        guardandoPuesto = true;
+
+        try
+        {
+            var puesto = new Puesto
+            {
+                Nombre = nombre,
+                DepartamentoId = departamentoId
+            };
+
+            await PuestoService.AgregarAsync(puesto);
+
+            await CargarPuestos(departamentoId);
+
+            nuevoPuesto = string.Empty;
+
+            mensajePuesto =
+                "Puesto agregado correctamente.";
+        }
+        catch (Exception)
+        {
+            mensajePuesto =
+                "No fue posible guardar el puesto.";
+        }
+        finally
+        {
+            guardandoPuesto = false;
+        }
+    }
+}

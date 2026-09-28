@@ -1,0 +1,259 @@
+@using hola_mundo.Client.Models
+@using hola_mundo.Client.Services
+
+@inject IEmpleadoService EmpleadoService
+@inject IPuestoService PuestoService
+
+<div class="add-section">
+
+    <div class="add-header">
+        <div class="add-icon">➕</div>
+        <div>
+            <h2>Agregar empleado</h2>
+            <p>Completa los datos para sumarlo al directorio.</p>
+        </div>
+    </div>
+
+    <EditForm Model="@nuevoEmpleado" OnValidSubmit="AgregarEmpleado">
+        <DataAnnotationsValidator />
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label for="numeroEmpleado">No. de empleado</label>
+                <InputText id="numeroEmpleado" class="form-control custom-input"
+                           @bind-Value="nuevoEmpleado.NumeroEmpleado"
+                           placeholder="Ej. 1005" maxlength="8" inputmode="numeric" />
+                <ValidationMessage For="@(() => nuevoEmpleado.NumeroEmpleado)" class="text-danger" />
+                @if (!string.IsNullOrEmpty(mensajeNumeroEmpleado))
+                {
+                    <div class="text-danger">@mensajeNumeroEmpleado</div>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="nombreEmpleado">Nombre</label>
+                <InputText id="nombreEmpleado" class="form-control custom-input"
+                           @bind-Value="nuevoEmpleado.Nombre"
+                           placeholder="Ej. Laura Ramírez" maxlength="60" />
+                <ValidationMessage For="@(() => nuevoEmpleado.Nombre)" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <label for="generoEmpleado">Género</label>
+                <InputSelect id="generoEmpleado" class="form-select custom-input"
+                             @bind-Value="nuevoEmpleado.Genero">
+                    <option value="">Selecciona una opción</option>
+                    <option value="Femenino">Femenino</option>
+                    <option value="Masculino">Masculino</option>
+                    <option value="No especificar">No especificar</option>
+                </InputSelect>
+                <ValidationMessage For="@(() => nuevoEmpleado.Genero)" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <label for="fechaCumpleanos">Fecha de cumpleaños</label>
+                <InputDate id="fechaCumpleanos" class="form-control custom-input"
+                           @bind-Value="nuevoEmpleado.FechaCumpleanos" />
+                <ValidationMessage For="@(() => nuevoEmpleado.FechaCumpleanos)" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <label for="curpEmpleado">CURP</label>
+                <InputText id="curpEmpleado" class="form-control custom-input"
+                           @bind-Value="nuevoEmpleado.CURP"
+                           placeholder="Ej. ABCD000000HDFXXX00" maxlength="18" />
+                <ValidationMessage For="@(() => nuevoEmpleado.CURP)" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <label for="telefonoEmpleado">Teléfono</label>
+                <InputText id="telefonoEmpleado" class="form-control custom-input"
+                           @bind-Value="nuevoEmpleado.Telefono"
+                           placeholder="Ej. 5512345678" maxlength="10" inputmode="numeric" />
+                <ValidationMessage For="@(() => nuevoEmpleado.Telefono)" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <label for="departamentoEmpleado">Área</label>
+                <InputSelect id="departamentoEmpleado" class="form-select custom-input"
+                             @bind-Value="nuevoEmpleado.DepartamentoId"
+                             @bind-Value:after="CambiarDepartamento">
+                    <option value="0">Selecciona un área</option>
+                    @foreach (var departamento in Departamentos)
+                    {
+                        <option value="@departamento.Id">@departamento.Nombre</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => nuevoEmpleado.DepartamentoId)" class="text-danger" />
+            </div>
+
+            <div class="form-group">
+                <label for="puestoEmpleado">Puesto</label>
+                <InputSelect id="puestoEmpleado" class="form-select custom-input"
+                             @bind-Value="nuevoEmpleado.PuestoId"
+                             @bind-Value:after="CambiarPuesto"
+                             disabled="@(nuevoEmpleado.DepartamentoId == 0 || cargandoPuestos)">
+                    @if (nuevoEmpleado.DepartamentoId == 0)
+                    {
+                        <option value="0">Selecciona primero un área</option>
+                    }
+                    else if (cargandoPuestos)
+                    {
+                        <option value="0">Cargando puestos...</option>
+                    }
+                    else if (puestosDisponibles.Count == 0)
+                    {
+                        <option value="0">No hay puestos registrados</option>
+                    }
+                    else
+                    {
+                        <option value="0">Selecciona un puesto</option>
+                        @foreach (var puesto in puestosDisponibles)
+                        {
+                            <option value="@puesto.Id">@puesto.Nombre</option>
+                        }
+                    }
+                </InputSelect>
+                <ValidationMessage For="@(() => nuevoEmpleado.PuestoId)" class="text-danger" />
+                @if (nuevoEmpleado.DepartamentoId > 0 && !cargandoPuestos && puestosDisponibles.Count == 0)
+                {
+                    <small class="text-warning">⚠️ Este departamento todavía no tiene puestos.</small>
+                }
+            </div>
+
+            <div class="form-group">
+                <label for="correoEmpleado">Correo</label>
+                <InputText id="correoEmpleado" class="form-control custom-input"
+                           @bind-Value="nuevoEmpleado.Correo"
+                           placeholder="Ej. laura@empresa.com" maxlength="100" />
+                <ValidationMessage For="@(() => nuevoEmpleado.Correo)" class="text-danger" />
+            </div>
+
+        </div>
+
+        <button type="submit" class="add-button">➕ Agregar empleado</button>
+    </EditForm>
+
+</div>
+
+@code {
+    /// Áreas disponibles para el selector (las carga la página, no este componente)
+    [Parameter, EditorRequired]
+    public List<Departamento> Departamentos { get; set; } = new();
+
+    
+    /// "Avisador" hacia el componente padre: se dispara cuando el empleado ya quedó
+    /// guardado, para que la página (Empleados.razor) sepa que debe refrescar su lista.
+   
+    [Parameter]
+    public EventCallback OnEmpleadoAgregado { get; set; }
+
+    // Empleado que se está llenando en el formulario. EditForm lee y escribe aquí
+    // a través de los @bind-Value de cada campo.
+    private Empleado nuevoEmpleado = new();
+
+    // Puestos que le corresponden al departamento elegido (se llenan al cambiar de área).
+    private List<Puesto> puestosDisponibles = new();
+
+    // Verdadero mientras se están pidiendo los puestos al servicio (deshabilita el <select> de puesto).
+    private bool cargandoPuestos;
+
+    // Mensaje de error para el número de empleado cuando ya existe (no es un error de
+    // formato, así que no lo puede detectar DataAnnotations; se revisa aparte contra la BD).
+    private string mensajeNumeroEmpleado = string.Empty;
+
+    
+    /// Se ejecuta cuando el usuario elige un área distinta en el <select> de departamento.
+    /// El puesto que tuviera elegido ya no aplica (era de otra área), así que se limpia
+    /// y se piden al servicio los puestos que sí pertenecen a la nueva área.
+    
+    private async Task CambiarDepartamento()
+    {
+        // Se limpia el puesto anterior porque pertenecía al departamento viejo.
+        nuevoEmpleado.PuestoId = 0;
+        nuevoEmpleado.Puesto = string.Empty;
+        puestosDisponibles = new();
+
+        // Si el usuario dejó el <select> en "Selecciona un área", no hay nada que pedir.
+        if (nuevoEmpleado.DepartamentoId <= 0)
+        {
+            return;
+        }
+
+        cargandoPuestos = true;
+
+        try
+        {
+            puestosDisponibles = await PuestoService.ObtenerPorDepartamentoAsync(nuevoEmpleado.DepartamentoId);
+        }
+        catch (Exception)
+        {
+            // Si falla la llamada (por ejemplo, sin conexión), se deja la lista vacía
+            // en vez de tronar la página; el usuario ve "No hay puestos registrados".
+            puestosDisponibles = new List<Puesto>();
+        }
+        finally
+        {
+            cargandoPuestos = false;
+        }
+    }
+
+  
+    /// El <select> de puesto solo guarda el Id (PuestoId). Esto busca el nombre
+    /// correspondiente y lo guarda también en nuevoEmpleado.Puesto, que es el
+    /// campo de texto que en verdad se manda a guardar.
+        private void CambiarPuesto()
+    {
+        var puesto = puestosDisponibles.FirstOrDefault(p => p.Id == nuevoEmpleado.PuestoId);
+        nuevoEmpleado.Puesto = puesto?.Nombre ?? string.Empty;
+    }
+
+   
+    /// Se ejecuta al enviar el formulario, solo si ya pasó las validaciones automáticas
+    /// de DataAnnotations (formato de CURP, correo, campos obligatorios, etc.).
+    /// Aquí se hacen las validaciones "manuales" que no se pueden poner como atributo.
+    
+    private async Task AgregarEmpleado()
+    {
+        mensajeNumeroEmpleado = string.Empty;
+
+        // Se recortan espacios sobrantes y se normaliza la CURP a mayúsculas,
+        // para que no se guarden datos con espacios al inicio/final por accidente.
+        nuevoEmpleado.NumeroEmpleado = nuevoEmpleado.NumeroEmpleado.Trim();
+        nuevoEmpleado.Nombre = nuevoEmpleado.Nombre.Trim();
+        nuevoEmpleado.Genero = nuevoEmpleado.Genero.Trim();
+        nuevoEmpleado.CURP = nuevoEmpleado.CURP.Trim().ToUpperInvariant();
+        nuevoEmpleado.Telefono = nuevoEmpleado.Telefono.Trim();
+        nuevoEmpleado.Correo = nuevoEmpleado.Correo.Trim();
+
+        // El puesto es obligatorio, pero solo se puede confirmar contra la lista
+        // que ya se cargó para el departamento elegido.
+        var puesto = puestosDisponibles.FirstOrDefault(p => p.Id == nuevoEmpleado.PuestoId);
+
+        if (puesto is null)
+        {
+            return;
+        }
+
+        nuevoEmpleado.Puesto = puesto.Nombre;
+
+        // El número de empleado debe ser único; esto no lo puede validar un atributo
+        // porque necesita consultar la base de datos.
+        if (await EmpleadoService.ExisteNumeroEmpleadoAsync(nuevoEmpleado.NumeroEmpleado))
+        {
+            mensajeNumeroEmpleado = "Este número de empleado ya está registrado.";
+            return;
+        }
+
+        await EmpleadoService.AgregarAsync(nuevoEmpleado);
+
+        // Se limpia el formulario para poder capturar otro empleado...
+        nuevoEmpleado = new Empleado();
+        puestosDisponibles = new List<Puesto>();
+
+        // ...y se avisa al padre (Empleados.razor) para que recargue la lista
+        // y el nuevo empleado aparezca en el directorio.
+        await OnEmpleadoAgregado.InvokeAsync();
+    }
+}

@@ -1,0 +1,196 @@
+@page "/empleados"
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
+
+@* Esta página solo arma el layout y pide datos: la búsqueda/paginación vive en
+   Models/DirectorioEmpleados.cs, la fila del formulario en Shared/FormularioEmpleado.razor
+   y la tabla en Shared/TablaEmpleados.razor *@
+
+@using hola_mundo.Client.Models
+@using hola_mundo.Client.Services
+@using hola_mundo.Client.Shared
+
+@inject IEmpleadoService EmpleadoService
+@inject IDepartamentoService DepartamentoService
+
+<PageTitle>Empleados</PageTitle>
+
+<div class="empleados-page">
+
+    <div class="background-effect effect-1"></div>
+    <div class="background-effect effect-2"></div>
+
+    <div class="container">
+
+        @if (Directorio is null)
+        {
+            <!-- Todavía no responde el servicio: se muestra un loader en vez de una página vacía. -->
+            <div class="loading-section">
+                <div class="loading-card">
+                    <img src="https://assets-v2.lottiefiles.com/a/03cdc6e0-118b-11ee-bf08-07d88a941cbd/fjMdlSoouM.gif"
+                         alt="Cargando..." width="90" height="90" />
+                    <h3>Cargando información...</h3>
+                    <p>Por favor espera un momento...</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- ENCABEZADO (solo texto fijo, sin lógica) -->
+            <div class="employees-header">
+                <div>
+                    <div class="page-badge">
+                        <span class="pulse-dot"></span>
+                        Sistema de empleados activo
+                    </div>
+                    <h1>
+                        Nuestro equipo
+                        <span class="gradient-text">en un solo lugar</span>
+                    </h1>
+                    <p>Consulta, busca y agrega empleados al directorio de la empresa en tiempo real.</p>
+                </div>
+                <div class="header-icon">👥</div>
+            </div>
+
+            <!-- ESTADÍSTICAS: los tres números salen de Directorio, no se calculan aquí -->
+            <div class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-icon purple">👤</div>
+                    <div>
+                        <span>Total de empleados</span>
+                        <strong>@Directorio.TotalEmpleados</strong>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">💼</div>
+                    <div>
+                        <span>Puestos distintos</span>
+                        <strong>@Directorio.PuestosUnicos</strong>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">🔎</div>
+                    <div>
+                        <span>Resultados mostrados</span>
+                        <strong>@Directorio.EmpleadosFiltrados.Count</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DIRECTORIO -->
+            <div class="employees-section">
+
+                <div class="section-title">
+                    <div>
+                        <span class="section-label">DIRECTORIO</span>
+                        <h2>Empleados registrados</h2>
+                    </div>
+                    <span class="employee-count">@Directorio.EmpleadosFiltrados.Count de @Directorio.TotalEmpleados</span>
+                </div>
+
+                <!-- Buscador en vivo: @bind="Directorio.TerminoBusqueda" escribe directo en el objeto,
+                     que ya se encarga de regresar a la página 1 cuando cambia el texto. -->
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input"
+                           placeholder="Buscar por nombre, puesto o correo..."
+                           @bind="Directorio.TerminoBusqueda" @bind:event="oninput" />
+                    @if (!string.IsNullOrWhiteSpace(Directorio.TerminoBusqueda))
+                    {
+                        <button type="button" class="clear-search" @onclick="Directorio.LimpiarBusqueda">✕</button>
+                    }
+                </div>
+
+                @if (Directorio.TerminoBusqueda.Trim().Length == 1)
+                {
+                    <div class="search-message">🔎 Escribe al menos 2 caracteres para realizar la búsqueda.</div>
+                }
+
+                <!-- Selector de vista: solo cambia una propiedad, no hay lógica que mover -->
+                <div class="btn-group mb-3" role="group" aria-label="Selector de vista">
+                    <button type="button" class="btn @(Directorio.ClaseBoton("tarjetas"))"
+                            @onclick='() => Directorio.VistaActual = "tarjetas"'>🗂️ Tarjetas</button>
+                    <button type="button" class="btn @(Directorio.ClaseBoton("tabla"))"
+                            @onclick='() => Directorio.VistaActual = "tabla"'>📋 Tabla</button>
+                </div>
+
+                <!-- Resultados: la página solo decide QUÉ componente pintar, la vista y los datos
+                     ya vienen listos desde Directorio -->
+                @if (Directorio.EmpleadosFiltrados.Count == 0)
+                {
+                    <div class="empty-state">
+                        <div class="empty-icon">🗂️</div>
+                        <p>No se encontraron empleados que coincidan con "@Directorio.TerminoBusqueda".</p>
+                    </div>
+                }
+                else
+                {
+                    if (Directorio.VistaActual == "tarjetas")
+                    {
+                        <div class="employees-grid">
+                            @foreach (var empleado in Directorio.EmpleadosPaginados)
+                            {
+                                <TarjetaEmpleado Nombre="@empleado.Nombre"
+                                                 Puesto="@empleado.Puesto"
+                                                 Correo="@empleado.Correo" />
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <TablaEmpleados Empleados="Directorio.EmpleadosPaginados"
+                                        Inicio="Directorio.InicioDePagina" />
+                    }
+
+                    <!-- Paginación: los botones llaman directo a los métodos de Directorio -->
+                    <div class="pagination-container">
+                        <button class="pagination-button"
+                                disabled="@(Directorio.PaginaActual <= 1)"
+                                @onclick="Directorio.PaginaAnterior">← Anterior</button>
+
+                        <span class="pagination-info">Página @Directorio.PaginaActual de @Directorio.TotalPaginas</span>
+
+                        <button class="pagination-button"
+                                disabled="@(Directorio.PaginaActual >= Directorio.TotalPaginas)"
+                                @onclick="Directorio.PaginaSiguiente">Siguiente →</button>
+                    </div>
+                }
+
+            </div>
+
+            <!-- FORMULARIO: toda su lógica (validar, guardar, cargar puestos) vive en el componente -->
+            <FormularioEmpleado Departamentos="departamentos"
+                                OnEmpleadoAgregado="RecargarEmpleados" />
+
+            <p class="storage-info">Los datos se guardan en la base de datos de SQL Server.</p>
+        }
+
+    </div>
+
+</div>
+
+@code {
+    // Mientras esto sea null, la página muestra el loader de arriba.
+    // Cuando llegan los datos, se crea un DirectorioEmpleados y ya no se vuelve a poner en null.
+    private DirectorioEmpleados? Directorio;
+
+    // Áreas para el <select> del formulario. Vive aquí (y no en DirectorioEmpleados)
+    // porque no tiene nada que ver con buscar/paginar empleados.
+    private List<Departamento> departamentos = new();
+
+    /// Se ejecuta una sola vez, al entrar a la página: pide los datos iniciales
+    protected override async Task OnInitializedAsync()
+    {
+        var listaEmpleados = await EmpleadoService.ObtenerTodosAsync();
+        Directorio = new DirectorioEmpleados(listaEmpleados);
+
+        departamentos = await DepartamentoService.ObtenerTodosAsync();
+    }
+
+    /// El formulario llama a esto (OnEmpleadoAgregado) cuando termina de guardar un empleado nuevo,
+    /// para que la lista de la página se refresque con el que se acaba de agregar
+    private async Task RecargarEmpleados()
+    {
+        var listaEmpleados = await EmpleadoService.ObtenerTodosAsync();
+        Directorio!.ActualizarEmpleados(listaEmpleados);
+    }
+}

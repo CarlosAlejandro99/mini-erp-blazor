@@ -1,0 +1,32 @@
+<div class="employee-card">
+    <div class="employee-avatar">@Iniciales</div>
+
+    <div class="employee-info">
+        <h5>@Nombre</h5>
+        <span class="employee-puesto">@Puesto</span>
+        <span class="employee-correo">✉️ @Correo</span>
+    </div>
+</div>
+
+@code {
+    // Componente sin lógica de negocio: solo recibe tres datos y los pinta.
+    [Parameter]
+    public string Nombre { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Puesto { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Correo { get; set; } = string.Empty;
+
+   
+    /// texto devejemplo en las tarjetas (ej. "Laura Ramírez" -> "LR").
+    /// Toma máximo las primeras 2 palabras del nombre y usa su primera letra en mayúscula.
+    
+    private string Iniciales =>
+        string.IsNullOrWhiteSpace(Nombre)
+            ? "?"
+            : string.Concat(Nombre.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Take(2)
+                .Select(p => char.ToUpper(p[0])));
+}
