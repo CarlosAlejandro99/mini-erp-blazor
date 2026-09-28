@@ -43,46 +43,23 @@ public class EmpleadosController : ControllerBase
     public async Task<ActionResult<EmpleadoEntity>> Agregar(
         EmpleadoEntity empleado)
     {
-        if (string.IsNullOrWhiteSpace(empleado.NumeroEmpleado))
+        var camposObligatorios = new (string Valor, string Mensaje)[]
         {
-            return BadRequest(
-                "El número de empleado es obligatorio.");
-        }
+            (empleado.NumeroEmpleado, "El número de empleado es obligatorio."),
+            (empleado.Nombre, "El nombre es obligatorio."),
+            (empleado.Genero, "El género es obligatorio."),
+            (empleado.CURP, "La CURP es obligatoria."),
+            (empleado.Telefono, "El teléfono es obligatorio."),
+            (empleado.Puesto, "El puesto es obligatorio."),
+            (empleado.Email, "El correo es obligatorio."),
+        };
 
-        if (string.IsNullOrWhiteSpace(empleado.Nombre))
+        foreach (var (valor, mensaje) in camposObligatorios)
         {
-            return BadRequest(
-                "El nombre es obligatorio.");
-        }
-
-        if (string.IsNullOrWhiteSpace(empleado.Genero))
-        {
-            return BadRequest(
-                "El género es obligatorio.");
-        }
-
-        if (string.IsNullOrWhiteSpace(empleado.CURP))
-        {
-            return BadRequest(
-                "La CURP es obligatoria.");
-        }
-
-        if (string.IsNullOrWhiteSpace(empleado.Telefono))
-        {
-            return BadRequest(
-                "El teléfono es obligatorio.");
-        }
-
-        if (string.IsNullOrWhiteSpace(empleado.Puesto))
-        {
-            return BadRequest(
-                "El puesto es obligatorio.");
-        }
-
-        if (string.IsNullOrWhiteSpace(empleado.Email))
-        {
-            return BadRequest(
-                "El correo es obligatorio.");
+            if (string.IsNullOrWhiteSpace(valor))
+            {
+                return BadRequest(mensaje);
+            }
         }
 
         empleado.NumeroEmpleado =

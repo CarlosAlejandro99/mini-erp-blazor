@@ -9,6 +9,7 @@
 </div>
 
 @code {
+    // Componente sin lógica de negocio: solo recibe tres datos y los pinta.
     [Parameter]
     public string Nombre { get; set; } = string.Empty;
 
@@ -18,6 +19,10 @@
     [Parameter]
     public string Correo { get; set; } = string.Empty;
 
+   
+    /// texto devejemplo en las tarjetas (ej. "Laura Ramírez" -> "LR").
+    /// Toma máximo las primeras 2 palabras del nombre y usa su primera letra en mayúscula.
+    
     private string Iniciales =>
         string.IsNullOrWhiteSpace(Nombre)
             ? "?"

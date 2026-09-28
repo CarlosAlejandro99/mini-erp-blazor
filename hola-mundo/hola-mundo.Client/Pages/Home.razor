@@ -296,7 +296,7 @@
             if (!string.IsNullOrWhiteSpace(datosGuardados))
             {
                 var empleados =
-                    JsonSerializer.Deserialize<List<Empleado>>(datosGuardados);
+                    JsonSerializer.Deserialize<List<EmpleadoAlmacenado>>(datosGuardados);
 
                 cantidadEmpleados = empleados?.Count ?? 0;
             }
@@ -317,7 +317,10 @@
     }
 
 
-    private class Empleado
+    // Forma mínima de los datos que llegan a existir en localStorage.
+    // No es el modelo de dominio (hola_mundo.Client.Models.Empleado):
+    // aquí solo se usa para contar cuántos empleados hay guardados.
+    private class EmpleadoAlmacenado
     {
         public string Nombre { get; set; } = "";
         public string Puesto { get; set; } = "";

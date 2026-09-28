@@ -1,14 +1,16 @@
 @page "/empleados"
 @rendermode @(new InteractiveWebAssemblyRenderMode(prerender: false))
 
-@using System.Linq
-@using hola_mundo.Client.Shared
+@* Esta página solo arma el layout y pide datos: la búsqueda/paginación vive en
+   Models/DirectorioEmpleados.cs, la fila del formulario en Shared/FormularioEmpleado.razor
+   y la tabla en Shared/TablaEmpleados.razor *@
+
 @using hola_mundo.Client.Models
 @using hola_mundo.Client.Services
+@using hola_mundo.Client.Shared
 
 @inject IEmpleadoService EmpleadoService
 @inject IDepartamentoService DepartamentoService
-@inject IPuestoService PuestoService
 
 <PageTitle>Empleados</PageTitle>
 
@@ -19,1167 +21,176 @@
 
     <div class="container">
 
-        @if (empleados == null)
+        @if (Directorio is null)
         {
+            <!-- Todavía no responde el servicio: se muestra un loader en vez de una página vacía. -->
             <div class="loading-section">
                 <div class="loading-card">
-
                     <img src="https://assets-v2.lottiefiles.com/a/03cdc6e0-118b-11ee-bf08-07d88a941cbd/fjMdlSoouM.gif"
-                         alt="Cargando..."
-                         width="90"
-                         height="90" />
-
+                         alt="Cargando..." width="90" height="90" />
                     <h3>Cargando información...</h3>
-
-                    <p>
-                        Por favor espera un momento...
-                    </p>
-
+                    <p>Por favor espera un momento...</p>
                 </div>
             </div>
         }
         else
         {
-            <!-- =========================================
-                 ENCABEZADO
-                 ========================================= -->
-
+            <!-- ENCABEZADO (solo texto fijo, sin lógica) -->
             <div class="employees-header">
-
                 <div>
-
                     <div class="page-badge">
                         <span class="pulse-dot"></span>
                         Sistema de empleados activo
                     </div>
-
                     <h1>
                         Nuestro equipo
-                        <span class="gradient-text">
-                            en un solo lugar
-                        </span>
+                        <span class="gradient-text">en un solo lugar</span>
                     </h1>
-
-                    <p>
-                        Consulta, busca y agrega empleados al
-                        directorio de la empresa en tiempo real.
-                    </p>
-
+                    <p>Consulta, busca y agrega empleados al directorio de la empresa en tiempo real.</p>
                 </div>
-
-                <div class="header-icon">
-                    👥
-                </div>
-
+                <div class="header-icon">👥</div>
             </div>
 
-
-            <!-- =========================================
-                 ESTADÍSTICAS
-                 ========================================= -->
-
+            <!-- ESTADÍSTICAS: los tres números salen de Directorio, no se calculan aquí -->
             <div class="stats-section">
-
                 <div class="stat-card">
-
-                    <div class="stat-icon purple">
-                        👤
-                    </div>
-
+                    <div class="stat-icon purple">👤</div>
                     <div>
                         <span>Total de empleados</span>
-                        <strong>@empleados.Count</strong>
+                        <strong>@Directorio.TotalEmpleados</strong>
                     </div>
-
                 </div>
-
-
                 <div class="stat-card">
-
-                    <div class="stat-icon blue">
-                        💼
-                    </div>
-
+                    <div class="stat-icon blue">💼</div>
                     <div>
                         <span>Puestos distintos</span>
-                        <strong>@PuestosUnicos</strong>
+                        <strong>@Directorio.PuestosUnicos</strong>
                     </div>
-
                 </div>
-
-
                 <div class="stat-card">
-
-                    <div class="stat-icon green">
-                        🔎
-                    </div>
-
+                    <div class="stat-icon green">🔎</div>
                     <div>
                         <span>Resultados mostrados</span>
-                        <strong>@empleadosFiltrados.Count</strong>
+                        <strong>@Directorio.EmpleadosFiltrados.Count</strong>
                     </div>
-
                 </div>
-
             </div>
 
-
-            <!-- =========================================
-                 DIRECTORIO
-                 ========================================= -->
-
+            <!-- DIRECTORIO -->
             <div class="employees-section">
 
                 <div class="section-title">
-
                     <div>
-
-                        <span class="section-label">
-                            DIRECTORIO
-                        </span>
-
-                        <h2>
-                            Empleados registrados
-                        </h2>
-
+                        <span class="section-label">DIRECTORIO</span>
+                        <h2>Empleados registrados</h2>
                     </div>
-
-                    <span class="employee-count">
-                        @empleadosFiltrados.Count de @empleados.Count
-                    </span>
-
+                    <span class="employee-count">@Directorio.EmpleadosFiltrados.Count de @Directorio.TotalEmpleados</span>
                 </div>
 
-
-                <!-- =========================================
-                     BUSCADOR
-                     ========================================= -->
-
+                <!-- Buscador en vivo: @bind="Directorio.TerminoBusqueda" escribe directo en el objeto,
+                     que ya se encarga de regresar a la página 1 cuando cambia el texto. -->
                 <div class="search-box">
-
-                    <span class="search-icon">
-                        🔍
-                    </span>
-
-                    <input type="text"
-                           class="search-input"
+                    <span class="search-icon">🔍</span>
+                    <input type="text" class="search-input"
                            placeholder="Buscar por nombre, puesto o correo..."
-                           value="@terminoBusqueda"
-                           @oninput="OnBuscar" />
-
-                    @if (!string.IsNullOrWhiteSpace(terminoBusqueda))
+                           @bind="Directorio.TerminoBusqueda" @bind:event="oninput" />
+                    @if (!string.IsNullOrWhiteSpace(Directorio.TerminoBusqueda))
                     {
-                        <button class="clear-search"
-                                @onclick="LimpiarBusqueda">
-                            ✕
-                        </button>
+                        <button type="button" class="clear-search" @onclick="Directorio.LimpiarBusqueda">✕</button>
                     }
-
                 </div>
 
-
-                @if (terminoBusqueda.Length == 1)
+                @if (Directorio.TerminoBusqueda.Trim().Length == 1)
                 {
-                    <div class="search-message">
-                        🔎 Escribe al menos 2 caracteres para realizar la búsqueda.
-                    </div>
+                    <div class="search-message">🔎 Escribe al menos 2 caracteres para realizar la búsqueda.</div>
                 }
 
-
-                <!-- =========================================
-                     SELECTOR DE VISTA
-                     ========================================= -->
-
-                <div class="btn-group mb-3"
-                     role="group"
-                     aria-label="Selector de vista">
-
-                    <button type="button"
-                            class="btn @(vistaActual == "tarjetas" ? "btn-primary" : "btn-outline-primary")"
-                            @onclick='() => vistaActual = "tarjetas"'>
-
-                        🗂️ Tarjetas
-
-                    </button>
-
-                    <button type="button"
-                            class="btn @(vistaActual == "tabla" ? "btn-primary" : "btn-outline-primary")"
-                            @onclick='() => vistaActual = "tabla"'>
-
-                        📋 Tabla
-
-                    </button>
-
+                <!-- Selector de vista: solo cambia una propiedad, no hay lógica que mover -->
+                <div class="btn-group mb-3" role="group" aria-label="Selector de vista">
+                    <button type="button" class="btn @(Directorio.ClaseBoton("tarjetas"))"
+                            @onclick='() => Directorio.VistaActual = "tarjetas"'>🗂️ Tarjetas</button>
+                    <button type="button" class="btn @(Directorio.ClaseBoton("tabla"))"
+                            @onclick='() => Directorio.VistaActual = "tabla"'>📋 Tabla</button>
                 </div>
 
-
-                <!-- =========================================
-                     RESULTADOS
-                     ========================================= -->
-
-                @if (empleadosFiltrados.Count == 0)
+                <!-- Resultados: la página solo decide QUÉ componente pintar, la vista y los datos
+                     ya vienen listos desde Directorio -->
+                @if (Directorio.EmpleadosFiltrados.Count == 0)
                 {
                     <div class="empty-state">
-
-                        <div class="empty-icon">
-                            🗂️
-                        </div>
-
-                        <p>
-                            No se encontraron empleados que coincidan
-                            con "@terminoBusqueda".
-                        </p>
-
+                        <div class="empty-icon">🗂️</div>
+                        <p>No se encontraron empleados que coincidan con "@Directorio.TerminoBusqueda".</p>
                     </div>
                 }
                 else
                 {
-                    @if (vistaActual == "tarjetas")
+                    if (Directorio.VistaActual == "tarjetas")
                     {
-                        <!-- TARJETAS -->
-
                         <div class="employees-grid">
-
-                            @foreach (var empleado in empleadosPaginados)
+                            @foreach (var empleado in Directorio.EmpleadosPaginados)
                             {
-                                <TarjetaEmpleado
-                                    Nombre="@empleado.Nombre"
-                                    Puesto="@empleado.Puesto"
-                                    Correo="@empleado.Correo" />
+                                <TarjetaEmpleado Nombre="@empleado.Nombre"
+                                                 Puesto="@empleado.Puesto"
+                                                 Correo="@empleado.Correo" />
                             }
-
                         </div>
                     }
                     else
                     {
-                        <!-- TABLA -->
-
-                        <div class="table-responsive employees-table-wrapper">
-
-                            <table class="table table-dark table-hover table-striped align-middle mb-0">
-
-                                <thead>
-
-                                    <tr>
-
-                                        <th>#</th>
-
-                                        <th>No. empleado</th>
-
-                                        <th>Nombre</th>
-
-                                        <th>Género</th>
-
-                                        <th>Cumpleaños</th>
-
-                                        <th>CURP</th>
-
-                                        <th>Teléfono</th>
-
-                                        <th>Puesto</th>
-
-                                        <th>Correo</th>
-
-                                    </tr>
-
-                                </thead>
-
-                                <tbody>
-
-                                    @{
-
-                                        int contador =
-                                            (paginaActual - 1) *
-                                            empleadosPorPagina;
-
-                                    }
-
-                                    @foreach (var empleado in empleadosPaginados)
-                                    {
-                                        contador++;
-
-                                        <tr>
-
-                                            <th scope="row">
-                                                @contador
-                                            </th>
-
-                                            <td>
-                                                @empleado.NumeroEmpleado
-                                            </td>
-
-                                            <td>
-                                                @empleado.Nombre
-                                            </td>
-
-                                            <td>
-                                                @empleado.Genero
-                                            </td>
-
-                                            <td>
-                                                @empleado.FechaCumpleanos?.ToString("dd/MM/yyyy")
-                                            </td>
-
-                                            <td>
-                                                @empleado.CURP
-                                            </td>
-
-                                            <td>
-                                                @empleado.Telefono
-                                            </td>
-
-                                            <td>
-
-                                                <span class="badge bg-primary-subtle text-primary-emphasis">
-
-                                                    @empleado.Puesto
-
-                                                </span>
-
-                                            </td>
-
-                                            <td>
-                                                @empleado.Correo
-                                            </td>
-
-                                        </tr>
-                                    }
-
-                                </tbody>
-
-                            </table>
-
-                        </div>
+                        <TablaEmpleados Empleados="Directorio.EmpleadosPaginados"
+                                        Inicio="Directorio.InicioDePagina" />
                     }
 
-
-                    <!-- =========================================
-                         PAGINACIÓN
-                         ========================================= -->
-
+                    <!-- Paginación: los botones llaman directo a los métodos de Directorio -->
                     <div class="pagination-container">
+                        <button class="pagination-button"
+                                disabled="@(Directorio.PaginaActual <= 1)"
+                                @onclick="Directorio.PaginaAnterior">← Anterior</button>
+
+                        <span class="pagination-info">Página @Directorio.PaginaActual de @Directorio.TotalPaginas</span>
 
                         <button class="pagination-button"
-                                disabled="@(paginaActual <= 1)"
-                                @onclick="PaginaAnterior">
-
-                            ← Anterior
-
-                        </button>
-
-
-                        <span class="pagination-info">
-
-                            Página @paginaActual de @TotalPaginas
-
-                        </span>
-
-
-                        <button class="pagination-button"
-                                disabled="@(paginaActual >= TotalPaginas)"
-                                @onclick="PaginaSiguiente">
-
-                            Siguiente →
-
-                        </button>
-
+                                disabled="@(Directorio.PaginaActual >= Directorio.TotalPaginas)"
+                                @onclick="Directorio.PaginaSiguiente">Siguiente →</button>
                     </div>
                 }
 
             </div>
 
-
-            <!-- =========================================
-                 FORMULARIO
-                 ========================================= -->
-
-            <div class="add-section">
-
-                <div class="add-header">
-
-                    <div class="add-icon">
-                        ➕
-                    </div>
-
-                    <div>
-
-                        <h2>
-                            Agregar empleado
-                        </h2>
-
-                        <p>
-                            Completa los datos para sumarlo al directorio.
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <EditForm Model="@nuevoEmpleado"
-                          OnValidSubmit="AgregarEmpleado">
-
-                    <DataAnnotationsValidator />
-
-                    <div class="form-grid">
-
-
-                        <!-- =========================================
-                             NO. DE EMPLEADO
-                             ========================================= -->
-
-                        <div class="form-group">
-
-                            <label for="numeroEmpleado">
-                                No. de empleado
-                            </label>
-
-                            <InputText id="numeroEmpleado"
-                                       class="form-control custom-input"
-                                       @bind-Value="nuevoEmpleado.NumeroEmpleado"
-                                       placeholder="Ej. 1005"
-                                       maxlength="8"
-                                       inputmode="numeric" />
-
-                            <ValidationMessage
-                                For="@(() => nuevoEmpleado.NumeroEmpleado)"
-                                class="text-danger" />
-
-                            @if (!string.IsNullOrEmpty(mensajeNumeroEmpleado))
-                            {
-                                <div class="text-danger">
-                                    @mensajeNumeroEmpleado
-                                </div>
-                            }
-
-                        </div>
-
-
-                        <!-- =========================================
-                             NOMBRE
-                             ========================================= -->
-
-                        <div class="form-group">
-
-                            <label for="nombreEmpleado">
-                                Nombre
-                            </label>
-
-                            <InputText id="nombreEmpleado"
-                                       class="form-control custom-input"
-                                       @bind-Value="nuevoEmpleado.Nombre"
-                                       placeholder="Ej. Laura Ramírez"
-                                       maxlength="60" />
-
-                            <ValidationMessage
-                                For="@(() => nuevoEmpleado.Nombre)"
-                                class="text-danger" />
-
-                        </div>
-
-
-                        <!-- =========================================
-                             GÉNERO
-                             ========================================= -->
-
-                        <div class="form-group">
-
-                            <label for="generoEmpleado">
-                                Género
-                            </label>
-
-                            <InputSelect id="generoEmpleado"
-                                         class="form-select custom-input"
-                                         @bind-Value="nuevoEmpleado.Genero">
-
-                                <option value="">
-                                    Selecciona una opción
-                                </option>
-
-                                <option value="Femenino">
-                                    Femenino
-                                </option>
-
-                                <option value="Masculino">
-                                    Masculino
-                                </option>
-
-                                <option value="No especificar">
-                                    No especificar
-                                </option>
-
-                            </InputSelect>
-
-                            <ValidationMessage
-                                For="@(() => nuevoEmpleado.Genero)"
-                                class="text-danger" />
-
-                        </div>
-
-
-                        <!-- =========================================
-                             FECHA DE CUMPLEAÑOS
-                             ========================================= -->
-
-                        <div class="form-group">
-
-                            <label for="fechaCumpleanos">
-                                Fecha de cumpleaños
-                            </label>
-
-                            <InputDate id="fechaCumpleanos"
-                                       class="form-control custom-input"
-                                       @bind-Value="nuevoEmpleado.FechaCumpleanos" />
-
-                            <ValidationMessage
-                                For="@(() => nuevoEmpleado.FechaCumpleanos)"
-                                class="text-danger" />
-
-                        </div>
-
-
-                        <!-- =========================================
-                             CURP
-                             ========================================= -->
-
-                        <div class="form-group">
-
-                            <label for="curpEmpleado">
-                                CURP
-                            </label>
-
-                            <InputText id="curpEmpleado"
-                                       class="form-control custom-input"
-                                       @bind-Value="nuevoEmpleado.CURP"
-                                       placeholder="Ej. ABCD000000HDFXXX00"
-                                       maxlength="18" />
-
-                            <ValidationMessage
-                                For="@(() => nuevoEmpleado.CURP)"
-                                class="text-danger" />
-
-                        </div>
-
-
-                        <!-- =========================================
-                             TELÉFONO
-                             ========================================= -->
-
-                        <div class="form-group">
-
-                            <label for="telefonoEmpleado">
-                                Teléfono
-                            </label>
-
-                            <InputText id="telefonoEmpleado"
-                                       class="form-control custom-input"
-                                       @bind-Value="nuevoEmpleado.Telefono"
-                                       placeholder="Ej. 5512345678"
-                                       maxlength="10"
-                                       inputmode="numeric" />
-
-                            <ValidationMessage
-                                For="@(() => nuevoEmpleado.Telefono)"
-                                class="text-danger" />
-
-                        </div>
-
-
-                        <!-- =========================================
-                             ÁREA / DEPARTAMENTO
-                             ========================================= -->
-
-                        <div class="form-group">
-
-                            <label for="departamentoEmpleado">
-                                Área
-                            </label>
-
-                            <InputSelect id="departamentoEmpleado"
-                                         class="form-select custom-input"
-                                         @bind-Value="nuevoEmpleado.DepartamentoId"
-                                         @bind-Value:after="CambiarDepartamento">
-
-                                <option value="0">
-                                    Selecciona un área
-                                </option>
-
-                                @foreach (var departamento in departamentos)
-                                {
-                                    <option value="@departamento.Id">
-                                        @departamento.Nombre
-                                    </option>
-                                }
-
-                            </InputSelect>
-
-                            <ValidationMessage
-                                For="@(() => nuevoEmpleado.DepartamentoId)"
-                                class="text-danger" />
-
-                        </div>
-
-
-                        <!-- =========================================
-                             PUESTO
-                             ========================================= -->
-
-                        <div class="form-group">
-
-                            <label for="puestoEmpleado">
-                                Puesto
-                            </label>
-
-                            <InputSelect id="puestoEmpleado"
-                                         class="form-select custom-input"
-                                         @bind-Value="nuevoEmpleado.PuestoId"
-                                         disabled="@(nuevoEmpleado.DepartamentoId == 0 || cargandoPuestos)">
-
-                                @if (nuevoEmpleado.DepartamentoId == 0)
-                                {
-                                    <option value="0">
-                                        Selecciona primero un área
-                                    </option>
-                                }
-                                else if (cargandoPuestos)
-                                {
-                                    <option value="0">
-                                        Cargando puestos...
-                                    </option>
-                                }
-                                else if (puestosDisponibles.Count == 0)
-                                {
-                                    <option value="0">
-                                        No hay puestos registrados
-                                    </option>
-                                }
-                                else
-                                {
-                                    <option value="0">
-                                        Selecciona un puesto
-                                    </option>
-
-                                    @foreach (var puesto in puestosDisponibles)
-                                    {
-                                        <option value="@puesto.Id">
-                                            @puesto.Nombre
-                                        </option>
-                                    }
-                                }
-
-                            </InputSelect>
-
-                            <ValidationMessage
-                                For="@(() => nuevoEmpleado.PuestoId)"
-                                class="text-danger" />
-
-                            @if (nuevoEmpleado.DepartamentoId > 0 &&
-                                 !cargandoPuestos &&
-                                 puestosDisponibles.Count == 0)
-                            {
-                                <small class="text-warning">
-                                    ⚠️ Este departamento todavía no tiene puestos.
-                                </small>
-                            }
-
-                        </div>
-
-
-                        <!-- =========================================
-                             CORREO
-                             ========================================= -->
-
-                        <div class="form-group">
-
-                            <label for="correoEmpleado">
-                                Correo
-                            </label>
-
-                            <InputText id="correoEmpleado"
-                                       class="form-control custom-input"
-                                       @bind-Value="nuevoEmpleado.Correo"
-                                       placeholder="Ej. laura@empresa.com"
-                                       maxlength="100" />
-
-                            <ValidationMessage
-                                For="@(() => nuevoEmpleado.Correo)"
-                                class="text-danger" />
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- BOTÓN -->
-
-                    <button type="submit"
-                            class="add-button">
-
-                        ➕ Agregar empleado
-
-                    </button>
-
-                </EditForm>
-
-            </div>
-
-
-            <!-- =========================================
-                 INFORMACIÓN
-                 ========================================= -->
-
-            <p class="storage-info">
-
-                Los datos se guardan en la base de datos
-                de SQL Server.
-
-            </p>
-
+            <!-- FORMULARIO: toda su lógica (validar, guardar, cargar puestos) vive en el componente -->
+            <FormularioEmpleado Departamentos="departamentos"
+                                OnEmpleadoAgregado="RecargarEmpleados" />
+
+            <p class="storage-info">Los datos se guardan en la base de datos de SQL Server.</p>
         }
 
     </div>
 
 </div>
 
-
 @code {
+    // Mientras esto sea null, la página muestra el loader de arriba.
+    // Cuando llegan los datos, se crea un DirectorioEmpleados y ya no se vuelve a poner en null.
+    private DirectorioEmpleados? Directorio;
 
-    // =========================================
-    // LISTA DE EMPLEADOS
-    // =========================================
-
-    private List<Empleado>? empleados;
-
-
-    // =========================================
-    // NUEVO EMPLEADO
-    // =========================================
-
-    private Empleado nuevoEmpleado = new();
-
-
-    // =========================================
-    // DEPARTAMENTOS
-    // =========================================
-
+    // Áreas para el <select> del formulario. Vive aquí (y no en DirectorioEmpleados)
+    // porque no tiene nada que ver con buscar/paginar empleados.
     private List<Departamento> departamentos = new();
 
-
-    // =========================================
-    // PUESTOS DISPONIBLES
-    // =========================================
-
-    private List<Puesto> puestosDisponibles = new();
-
-
-    // =========================================
-    // ESTADO DE PUESTOS
-    // =========================================
-
-    private bool cargandoPuestos = false;
-
-
-    // =========================================
-    // MENSAJE NÚMERO DE EMPLEADO
-    // =========================================
-
-    private string mensajeNumeroEmpleado = string.Empty;
-
-
-    // =========================================
-    // BUSCADOR
-    // =========================================
-
-    private string terminoBusqueda = string.Empty;
-
-    private string terminoBusquedaAplicado = string.Empty;
-
-    private CancellationTokenSource? busquedaCancellation;
-
-
-    // =========================================
-    // VISTA
-    // =========================================
-
-    private string vistaActual = "tarjetas";
-
-
-    // =========================================
-    // PAGINACIÓN
-    // =========================================
-
-    private int empleadosPorPagina = 4;
-
-    private int paginaActual = 1;
-
-
-    // =========================================
-    // EMPLEADOS FILTRADOS
-    // =========================================
-
-    private List<Empleado> empleadosFiltrados =>
-        empleados is null
-            ? new List<Empleado>()
-            : empleados.Where(e =>
-                string.IsNullOrWhiteSpace(terminoBusquedaAplicado) ||
-
-                e.Nombre.Contains(
-                    terminoBusquedaAplicado,
-                    StringComparison.OrdinalIgnoreCase) ||
-
-                e.Puesto.Contains(
-                    terminoBusquedaAplicado,
-                    StringComparison.OrdinalIgnoreCase) ||
-
-                e.Correo.Contains(
-                    terminoBusquedaAplicado,
-                    StringComparison.OrdinalIgnoreCase) ||
-
-                e.NumeroEmpleado.Contains(
-                    terminoBusquedaAplicado,
-                    StringComparison.OrdinalIgnoreCase) ||
-
-                e.CURP.Contains(
-                    terminoBusquedaAplicado,
-                    StringComparison.OrdinalIgnoreCase) ||
-
-                e.Telefono.Contains(
-                    terminoBusquedaAplicado,
-                    StringComparison.OrdinalIgnoreCase) ||
-
-                e.Genero.Contains(
-                    terminoBusquedaAplicado,
-                    StringComparison.OrdinalIgnoreCase)
-
-            ).ToList();
-
-
-    // =========================================
-    // TOTAL DE PÁGINAS
-    // =========================================
-
-    private int TotalPaginas =>
-        Math.Max(
-            1,
-            (int)Math.Ceiling(
-                empleadosFiltrados.Count /
-                (double)empleadosPorPagina
-            )
-        );
-
-
-    // =========================================
-    // EMPLEADOS PAGINADOS
-    // =========================================
-
-    private List<Empleado> empleadosPaginados =>
-        empleadosFiltrados
-            .Skip(
-                (paginaActual - 1) *
-                empleadosPorPagina
-            )
-            .Take(empleadosPorPagina)
-            .ToList();
-
-
-    // =========================================
-    // PUESTOS ÚNICOS
-    // =========================================
-
-    private int PuestosUnicos =>
-        empleados?
-            .Select(e => e.Puesto)
-            .Distinct()
-            .Count() ?? 0;
-
-
-    // =========================================
-    // CARGAR INFORMACIÓN INICIAL
-    // =========================================
-
+    /// Se ejecuta una sola vez, al entrar a la página: pide los datos iniciales
     protected override async Task OnInitializedAsync()
     {
-        empleados =
-            await EmpleadoService.ObtenerTodosAsync();
+        var listaEmpleados = await EmpleadoService.ObtenerTodosAsync();
+        Directorio = new DirectorioEmpleados(listaEmpleados);
 
-        departamentos =
-            await DepartamentoService.ObtenerTodosAsync();
+        departamentos = await DepartamentoService.ObtenerTodosAsync();
     }
 
-
-    // =========================================
-    // CAMBIAR DEPARTAMENTO
-    // =========================================
-
-    private async Task CambiarDepartamento()
+    /// El formulario llama a esto (OnEmpleadoAgregado) cuando termina de guardar un empleado nuevo,
+    /// para que la lista de la página se refresque con el que se acaba de agregar
+    private async Task RecargarEmpleados()
     {
-        // Limpiar el puesto anterior.
-        nuevoEmpleado.PuestoId = 0;
-        nuevoEmpleado.Puesto = string.Empty;
-
-        puestosDisponibles = new();
-
-        // Si no hay área seleccionada,
-        // el puesto permanece deshabilitado.
-        if (nuevoEmpleado.DepartamentoId <= 0)
-        {
-            return;
-        }
-
-        cargandoPuestos = true;
-
-        try
-        {
-            puestosDisponibles =
-                await PuestoService.ObtenerPorDepartamentoAsync(
-                    nuevoEmpleado.DepartamentoId);
-        }
-        catch (Exception)
-        {
-            puestosDisponibles = new List<Puesto>();
-        }
-        finally
-        {
-            cargandoPuestos = false;
-        }
+        var listaEmpleados = await EmpleadoService.ObtenerTodosAsync();
+        Directorio!.ActualizarEmpleados(listaEmpleados);
     }
-
-
-    // =========================================
-    // CAMBIAR PUESTO
-    // =========================================
-
-    private void CambiarPuesto()
-    {
-        var puestoSeleccionado =
-            puestosDisponibles.FirstOrDefault(
-                p => p.Id == nuevoEmpleado.PuestoId);
-
-        if (puestoSeleccionado is null)
-        {
-            nuevoEmpleado.Puesto = string.Empty;
-            return;
-        }
-
-        nuevoEmpleado.Puesto =
-            puestoSeleccionado.Nombre;
-    }
-
-
-    // =========================================
-    // BUSCADOR
-    // =========================================
-
-    private async Task OnBuscar(ChangeEventArgs e)
-    {
-        terminoBusqueda =
-            e.Value?.ToString() ?? string.Empty;
-
-        busquedaCancellation?.Cancel();
-        busquedaCancellation?.Dispose();
-
-        busquedaCancellation =
-            new CancellationTokenSource();
-
-        var token =
-            busquedaCancellation.Token;
-
-
-        if (string.IsNullOrWhiteSpace(terminoBusqueda))
-        {
-            terminoBusquedaAplicado =
-                string.Empty;
-
-            paginaActual = 1;
-
-            await InvokeAsync(
-                StateHasChanged
-            );
-
-            return;
-        }
-
-
-        if (terminoBusqueda.Trim().Length < 2)
-        {
-            terminoBusquedaAplicado =
-                string.Empty;
-
-            paginaActual = 1;
-
-            await InvokeAsync(
-                StateHasChanged
-            );
-
-            return;
-        }
-
-
-        try
-        {
-            await Task.Delay(
-                500,
-                token
-            );
-
-
-            if (token.IsCancellationRequested)
-            {
-                return;
-            }
-
-
-            terminoBusquedaAplicado =
-                terminoBusqueda.Trim();
-
-            paginaActual = 1;
-
-
-            await InvokeAsync(
-                StateHasChanged
-            );
-        }
-        catch (TaskCanceledException)
-        {
-            // Búsqueda cancelada.
-        }
-    }
-
-
-    // =========================================
-    // LIMPIAR BÚSQUEDA
-    // =========================================
-
-    private void LimpiarBusqueda()
-    {
-        busquedaCancellation?.Cancel();
-        busquedaCancellation?.Dispose();
-
-        terminoBusqueda =
-            string.Empty;
-
-        terminoBusquedaAplicado =
-            string.Empty;
-
-        paginaActual = 1;
-    }
-
-
-    // =========================================
-    // PÁGINA ANTERIOR
-    // =========================================
-
-    private void PaginaAnterior()
-    {
-        if (paginaActual > 1)
-        {
-            paginaActual--;
-        }
-    }
-
-
-    // =========================================
-    // PÁGINA SIGUIENTE
-    // =========================================
-
-    private void PaginaSiguiente()
-    {
-        if (paginaActual < TotalPaginas)
-        {
-            paginaActual++;
-        }
-    }
-
-
-    // =========================================
-    // AGREGAR EMPLEADO
-    // =========================================
-
-    private async Task AgregarEmpleado()
-    {
-        mensajeNumeroEmpleado =
-            string.Empty;
-
-
-        // Normalizar datos
-
-        nuevoEmpleado.NumeroEmpleado =
-            nuevoEmpleado.NumeroEmpleado.Trim();
-
-        nuevoEmpleado.Nombre =
-            nuevoEmpleado.Nombre.Trim();
-
-        nuevoEmpleado.Genero =
-            nuevoEmpleado.Genero.Trim();
-
-        nuevoEmpleado.CURP =
-            nuevoEmpleado.CURP.Trim().ToUpperInvariant();
-
-        nuevoEmpleado.Telefono =
-            nuevoEmpleado.Telefono.Trim();
-
-        nuevoEmpleado.Puesto =
-            nuevoEmpleado.Puesto.Trim();
-
-        nuevoEmpleado.Correo =
-            nuevoEmpleado.Correo.Trim();
-
-
-        // Asegurar que el puesto corresponda
-        // al departamento seleccionado.
-
-        var puestoSeleccionado =
-            puestosDisponibles.FirstOrDefault(
-                p => p.Id == nuevoEmpleado.PuestoId);
-
-
-        if (puestoSeleccionado is null)
-        {
-            return;
-        }
-
-
-        nuevoEmpleado.Puesto =
-            puestoSeleccionado.Nombre;
-
-
-        // Comprobar número duplicado
-
-        if (await EmpleadoService.ExisteNumeroEmpleadoAsync(
-                nuevoEmpleado.NumeroEmpleado))
-        {
-            mensajeNumeroEmpleado =
-                "Este número de empleado ya está registrado.";
-
-            return;
-        }
-
-
-        // Agregar empleado
-
-        await EmpleadoService.AgregarAsync(
-            nuevoEmpleado
-        );
-
-
-        // Actualizar la lista desde SQL Server
-
-        empleados =
-            await EmpleadoService.ObtenerTodosAsync();
-
-
-        // Limpiar formulario
-
-        nuevoEmpleado =
-            new Empleado();
-
-        puestosDisponibles =
-            new List<Puesto>();
-
-
-        // Regresar a primera página
-
-        paginaActual = 1;
-    }
-
 }
